@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 var db = require("../../models/db"),
-    model = require("../../models/admin/Jobs");
+    model = require("../../models/admin/TypeUsers");
 
 //Pour créer des types, utilisables pour l'admin
 router.post('/create', (req, res) => {
