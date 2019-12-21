@@ -8,7 +8,7 @@ var db = require("./models/db");
 
 //mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
-var string_con = 'mongodb://localhost/Beniragi';
+var string_con = 'mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 
