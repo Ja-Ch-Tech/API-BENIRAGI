@@ -110,3 +110,22 @@ module.exports.getOfferForFreelancer = (id_freelancer, limit, callback) => {
         
     }
 }
+
+//Envoi de la notification 
+module.exports.sendNotificationMessage = (newMessage, callback) => {
+    try {
+        collection.value.insertOne(newMessage, (err, result) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la sauvegarde de la notification du message : " + err)
+            } else {
+                if (result) {
+                    callback(true, "La notification a été enregistrer")
+                } else {
+                    callback(false, "Aucune enregistrement")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la sauvegarde de la notification du message : " + exception)
+    }
+}

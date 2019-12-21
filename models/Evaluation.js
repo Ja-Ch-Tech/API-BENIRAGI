@@ -80,4 +80,39 @@ module.exports.evaluate = (newEvaluate, callback) => {
     } catch (exception) {
         callback(false, "Une exception lors de l'evaluation : " + exception)
     }
-}//Verifier si ils ont un truc à faire ens.
+}
+
+//Récupérer la note moyenne
+module.exports.getAverageNote = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": "" + objet._id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_freelancer",
+                    "average": {
+                        "$avg": "$note"
+                    }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération de moyenne de note : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.average = resultAggr[0].average;
+                    callback(true, "La note moyenne", objet)
+                } else {
+                    objet.average = 0;
+                    callback(false, "Aucune note", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception lors de la récupération de moyenne de note : " + exception)
+    }
+}

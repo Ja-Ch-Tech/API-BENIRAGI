@@ -14,3 +14,12 @@ module.exports.Attachments = function Attachments() {
         id_docs: String
     }
 }
+
+module.exports.Message = function Message() {
+    return {
+        id_offer: String,
+        id_sender: String,
+        message: String,
+        send_at: new Date()
+    }
+}

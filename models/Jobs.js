@@ -146,11 +146,22 @@ function callDocs(obj, callback) {
                 if (outDocs == obj.docs) {
                     delete obj.docs;
                     obj.docs = listDocs;
-                    callback(true, "Les documents ont été renvoyé", obj)
+                    
+                    var evaluation = require("./Evaluation");
+
+                    evaluation.initialize(db);
+                    evaluation.getAverageNote(obj, (isGet, message, resultWithAverage) => {
+                        callback(true, message, resultWithAverage)
+                    })
                 }
             })
         }
     } else {
-        callback(false, "Aucun document n'a été spécifié", obj)
+        var evaluation = require("./Evaluation");
+
+        evaluation.initialize(db);
+        evaluation.getAverageNote(obj, (isGet, message, resultWithAverage) => {
+            callback(true, message, resultWithAverage)
+        })
     }
 }

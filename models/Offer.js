@@ -213,3 +213,82 @@ module.exports.getDetails = (id, callback) => {
         
     }
 }
+
+module.exports.findOneById = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id),
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur de recherche de l'offre : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(true, "L'offre existe", resultAggr[0])
+                } else {
+                    callback(false, "Aucune offre ou offre clos")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception de recherche de l'offre : " + exception)
+    }
+}
+
+//Pour envoyer un message dans une offre
+module.exports.sendingMessage = (newMessage, callback) => {
+    try {
+        this.findOneById(newMessage.id_offer, (isFound, message, result) => {
+            if (isFound) {
+                if (newMessage.id_sender == result.id_employer || newMessage.id_sender == result.id_freelancer) {
+                    if (newMessage.message && newMessage.message.trim(" ")) {
+                        
+                        delete newMessage.id_offer;
+
+                        var filter = {
+                                "_id": result._id
+                            },
+                            update = {
+                                "$push": {
+                                    "messages": newMessage
+                                }
+                            };
+
+                        collection.value.updateOne(filter, update, (err, resultUp) => {
+                            if (err) {
+                                callback(false, "Une erreur de l'envoi du message de l'offre : " +err)
+                            } else {
+                                if (resultUp) {
+                                    var notification = require("./Notification"),
+                                        entitySendMessage = require("./entities/Notification").SendMessage();
+
+                                    entitySendMessage.id_offer = "" + result._id;
+                                    entitySendMessage.id_freelancer = result.id_freelancer;
+
+                                    notification.initialize(db);
+                                    notification.sendNotificationMessage(entitySendMessage, (isSend, message, result) => {
+                                        callback(true, "Message envoyé", result)
+                                    })
+                                } else {
+                                    callback(false, "Aucun message envoyé pour cet offre")
+                                }
+                            }
+                        })
+                    } else {
+                        callback(false, "Message vide, ça passe pas !")
+                    }
+                } else {
+                    callback(false, "Vous ne faites pas partie de cet offre")
+                }
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        
+    }
+}

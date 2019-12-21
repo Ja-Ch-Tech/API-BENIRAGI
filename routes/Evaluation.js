@@ -12,6 +12,7 @@ router.post('/', (req, res) => {
     entity.id_employer = req.body.id_employer;
     entity.id_freelancer = req.body.id_freelancer;
     entity.note = parseInt(req.body.note);
+    entity.message = req.body.message;
 
     model.initialize(db);
     model.evaluate(entity, (isEvaluate, message, result) => {

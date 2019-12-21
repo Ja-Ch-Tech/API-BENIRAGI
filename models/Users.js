@@ -547,7 +547,6 @@ module.exports.getInfos = (objet, callback) => {
                 callback(false, "Une erreur est survenue lors de la récupération des infos du user : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    delete resultAggr[0]._id;
                     delete resultAggr[0].created_at;
 
                     var type_users = require("./TypeUsers");
