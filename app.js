@@ -8,7 +8,7 @@ var db = require("./models/db");
 
 //mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
-var string_con = 'mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority';
+var string_con = 'mongodb://localhost/Beniragi';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 
@@ -26,6 +26,7 @@ var typeUsersRouter = require('./routes/TypeUsers');
 var codeRouter = require('./routes/Code');
 var jobsRouter = require('./routes/Jobs');
 var offerRouter = require('./routes/Offer');
+var evaluationRouter = require('./routes/Evaluation');
 
 //For admin
 var jobsAdminRouter = require("./routes/admin/Jobs");
@@ -49,6 +50,7 @@ app.use('/type_users', typeUsersRouter);
 app.use('/code', codeRouter);
 app.use('/jobs', jobsRouter);
 app.use('/offer', offerRouter);
+app.use('/evaluation', evaluationRouter);
 
 //For admin
 app.use('/admin/jobs', jobsAdminRouter);

@@ -11,7 +11,7 @@ module.exports.initialize = (db) => {
 //Envoi de l'offre
 module.exports.makeOffer = (newOffer, callback) => {
     try {
-        testOfferExist(newOffer.id_employer, newOffer.id_freelancer, (isTrue, message, result) => {
+        module.exports.testOfferExist(newOffer.id_employer, newOffer.id_freelancer, (isTrue, message, result) => {
             if (isTrue) {
                 var user = require("./Users");
 
@@ -79,7 +79,7 @@ module.exports.makeOffer = (newOffer, callback) => {
 }
 
 //Test si l'offre existe déjà
-function testOfferExist(id_employer, id_freelancer, callback) {
+module.exports.testOfferExist = (id_employer, id_freelancer, callback) => {
     collection.value.aggregate([
         {
             "$match": {
