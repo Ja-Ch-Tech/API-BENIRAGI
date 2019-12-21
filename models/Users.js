@@ -532,3 +532,45 @@ module.exports.setDocs = (newDocs, callback) => {
         callback(false, "Une exception a été lévée lors de la définition de l'avatar : " + exception)
     }
 }
+
+//Pour recupérer les infos d'un user
+module.exports.getInfos = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.id_user)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération des infos du user : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    delete resultAggr[0]._id;
+                    delete resultAggr[0].created_at;
+
+                    var type_users = require("./TypeUsers");
+
+                    type_users.initialize(db);
+                    type_users.getTypeForUser(resultAggr[0], (isGet, message, result) => {
+                        if (isGet) {
+                            var media = require("./Media");
+
+                            media.getInfos(result, (isGet, message, resultWithMedia) => {
+                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithMedia)
+                            })
+
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+                } else {
+                    callback(false, "Aucun user n'y correspond")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des infos du user : " + exception)
+    }
+}

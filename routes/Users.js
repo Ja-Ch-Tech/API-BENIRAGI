@@ -113,4 +113,21 @@ router.post('/setJob', (req, res) => {
     })
 })
 
+//Pour récupérer les détails d'un utilisateur
+router.get('/details/:id_user', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            "id_user": req.params.id_user
+        };
+
+    model.initialize(db);
+    model.getInfos(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

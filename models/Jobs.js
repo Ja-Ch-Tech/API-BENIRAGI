@@ -94,3 +94,63 @@ module.exports.searchJob = (value, callback) => {
         
     }
 }
+
+//Récupération des infos supplémentaire
+module.exports.getInfos = (objet, callback) => {
+    try {
+        if (objet.id_job) {
+            module.exports.findOneById(objet.id_job, (isFound, message, result) => {
+                delete objet.id_job;
+                delete result._id;
+
+                if (isFound) {
+                    objet.job = result;
+                    
+                    callDocs(objet, (isCall, message, result) => {
+                        callback(isCall, message, result);
+                    })
+
+                } else {
+                    callDocs(objet, (isCall, message, result) => {
+                        callback(false, message, result);
+                    })
+                }
+
+            })
+        } else {
+            callDocs(objet, (isCall, message, result) => {
+                callback(false, message, result);
+            })
+        }
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des info supp. : " + exception)
+    }
+}
+
+//Pour ajouter les documents
+function callDocs(obj, callback) {
+    if (obj.docs && obj.docs.length > 0) {
+        var media = require("./Media"),
+            outDocs = 0,
+            listDocs = [];
+
+        media.initialize(db);
+
+        for (let index = 0; index < obj.docs.length; index++) {
+            media.findOneById(obj.docs[index].id_docs, (isFound, message, result) => {
+                outDocs++;
+                if (isFound) {
+                    listDocs.push(result)
+                }
+
+                if (outDocs == obj.docs) {
+                    delete obj.docs;
+                    obj.docs = listDocs;
+                    callback(true, "Les documents ont été renvoyé", obj)
+                }
+            })
+        }
+    } else {
+        callback(false, "Aucun document n'a été spécifié", obj)
+    }
+}
