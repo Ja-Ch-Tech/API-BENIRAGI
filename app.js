@@ -25,6 +25,7 @@ var usersRouter = require('./routes/Users');
 var typeUsersRouter = require('./routes/TypeUsers');
 var codeRouter = require('./routes/Code');
 var jobsRouter = require('./routes/Jobs');
+var offerRouter = require('./routes/Offer');
 
 //For admin
 var jobsAdminRouter = require("./routes/admin/Jobs");
@@ -47,6 +48,7 @@ app.use('/users', usersRouter);
 app.use('/type_users', typeUsersRouter);
 app.use('/code', codeRouter);
 app.use('/jobs', jobsRouter);
+app.use('/offer', offerRouter);
 
 //For admin
 app.use('/admin/jobs', jobsAdminRouter);

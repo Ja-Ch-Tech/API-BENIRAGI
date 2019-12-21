@@ -574,3 +574,23 @@ module.exports.getInfos = (objet, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération des infos du user : " + exception)
     }
 }
+
+//Détermine le types d'un user via son id
+module.exports.isEmployer = (id, callback) => {
+    try {
+        this.findOneById(id, (isFound, message, result) => {
+            if (isFound) {
+                var type_users = require("./TypeUsers");
+
+                type_users.initialize(db);
+                type_users.isEmployer(result.id_type, (isFound, message, result) => {
+                    callback(isFound, message, result);
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception de détermination : " + exception)
+    }
+}
