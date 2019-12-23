@@ -18,8 +18,8 @@ module.exports.makeOffer = (newOffer, callback) => {
                 user.initialize(db);
                 user.isEmployer(newOffer.id_employer, (isEmployer, message, result) => {
                     if (isEmployer) {
-                        user.isEmployer(newOffer.id_freelancer, (isEmployer, message, result) => {
-                            if (!isEmployer) {
+                        user.isEmployer(newOffer.id_freelancer, (isFreelancer, message, result) => {
+                            if (!isFreelancer) {
                                 if (newOffer.message && newOffer.message.trim(" ")) {
 
                                     //Sauvegarde message

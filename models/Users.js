@@ -539,7 +539,9 @@ module.exports.getInfos = (objet, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(objet.id_user)
+                    "_id": require("mongodb").ObjectId(objet.id_user),
+                    "visibility": true,
+                    "flag": true
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -557,6 +559,15 @@ module.exports.getInfos = (objet, callback) => {
                             var media = require("./Media");
 
                             media.getInfos(result, (isGet, message, resultWithMedia) => {
+                                
+                                //Suppression de datas en trop
+                                delete resultWithMedia._id;
+                                delete resultWithMedia.password;
+                                delete resultWithMedia.flag;
+                                delete resultWithMedia.id_type;
+                                delete resultWithMedia.visibility;
+                                delete resultWithMedia.identity.created_at;
+
                                 callback(true, "Les infos de l'utilisateur est renvoyé", resultWithMedia)
                             })
 

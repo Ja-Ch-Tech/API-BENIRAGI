@@ -114,7 +114,6 @@ module.exports.getTypeForUser = (obj, callback) => {
                 callback(false, "Une erreur lors de la récupération du type de l'utilisateur : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    delete obj.id_type;
 
                     obj.typeUser = resultAggr[0].intitule;
                     callback(true, `L'utilisateur existe en tant que ${obj.typeUser}`, obj)

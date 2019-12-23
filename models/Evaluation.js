@@ -105,7 +105,10 @@ module.exports.getAverageNote = (objet, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     objet.average = resultAggr[0].average;
-                    callback(true, "La note moyenne", objet)
+                    
+                    this.getFeedBacks(objet, (isGet, message, resultWithFeedbacks) => {
+                        callback(true, message, resultWithFeedbacks)
+                    })
                 } else {
                     objet.average = 0;
                     callback(false, "Aucune note", objet)
@@ -114,5 +117,65 @@ module.exports.getAverageNote = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception lors de la récupération de moyenne de note : " + exception)
+    }
+}
+
+//Récupération des feedbacks
+module.exports.getFeedBacks = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": "" + objet._id
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération des notes : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var user = require("./Users"),
+                        outEvaluation = 0,
+                        listOut = [];
+
+                    user.initialize(db);
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        user.findOneById(resultAggr[index].id_employer, (isGet, message, result) => {
+                            outEvaluation++;
+                            if (isGet) {
+                                //Suppression des datas en trop dans la réponse
+                                delete result._id;
+                                delete result.password;
+                                delete result.id_type;
+                                delete result.flag;
+                                delete result.visibility;
+                                delete result.created_at;
+                                delete result.identity.created_at;
+                                delete result.typeUser;
+
+                                delete resultAggr[index]._id;
+                                delete resultAggr[index].id_employer;
+                                delete resultAggr[index].id_freelancer;
+
+                                listOut.push({
+                                    identity_employeur: result,
+                                    evaluation: resultAggr[index]
+                                });
+                            }
+
+                            if (outEvaluation == resultAggr.length) {
+                                objet.feedBacks = listOut;
+                                callback(true, "Les feedbacks des employeurs y sont", objet)
+                            }
+                        })
+                    }
+                } else {
+                    objet.feedBacks = [];
+                    callback(false, "Aucune evaluation", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        
     }
 }

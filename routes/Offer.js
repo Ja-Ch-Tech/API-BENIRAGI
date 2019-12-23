@@ -13,6 +13,7 @@ router.post('/make', (req, res) => {
     entity.id_freelancer = req.body.id_freelancer;
     entity.message = req.body.message;
 
+    model.initialize(db);
     model.makeOffer(entity, (isMaking, message, result) => {
         objetRetour.getEtat = isMaking;
         objetRetour.getMessage = message;

@@ -18,7 +18,7 @@ router.post('/activation', function (req, res, next) {
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 
-        res.status(200).send(result);
+        res.status(200).send(objetRetour);
     })
 });
 
