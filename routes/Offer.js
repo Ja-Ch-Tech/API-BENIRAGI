@@ -41,4 +41,37 @@ router.post('/attachment/:id_offer', (req, res) => {
     })
 })
 
+//Pour l'envoie d'un message
+router.post('/message/send', (req, res) => {
+    var entity = require("../models/entities/Offer").Message(),
+        objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    entity.id_offer = req.body.id_offer;
+    entity.id_sender = req.body.id_sender;
+    entity.message = req.body.message && req.body.message.trim(" ") ? req.body.message : null;
+    
+    model.initialize(db);
+    model.sendingMessage(entity, (isSend, message, result) => {
+        objetRetour.getEtat = isSend;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour)
+    })
+})
+
+//Pour récupérer les conversations d'un user
+router.get('/getMessages/:id_user', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.initialize(db);
+    model.getAllMessagesForDifferentOffer(req.params.id_user, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

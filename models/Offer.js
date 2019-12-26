@@ -114,7 +114,7 @@ module.exports.setAttachment = (newAttachement, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de l'attachement : " +err)
+                callback(false, "Une erreur est survenue lors de l'attachement : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var media = require("./Media");
@@ -123,8 +123,8 @@ module.exports.setAttachment = (newAttachement, callback) => {
                     media.findOneById(newAttachement.id_docs, (isFound, message, result) => {
                         if (isFound) {
                             var filter = {
-                                    "_id": resultAggr[0]._id
-                                },
+                                "_id": resultAggr[0]._id
+                            },
                                 update = {
                                     "$set": {
                                         "attachment": "" + result._id
@@ -133,7 +133,7 @@ module.exports.setAttachment = (newAttachement, callback) => {
 
                             collection.value.updateOne(filter, update, (err, result) => {
                                 if (err) {
-                                    callback(false, "Erreur lors de la mise à jour de l'attachment : " +err)
+                                    callback(false, "Erreur lors de la mise à jour de l'attachment : " + err)
                                 } else {
                                     if (result) {
                                         callback(true, "Mise à jour de l'attachment", result)
@@ -141,7 +141,7 @@ module.exports.setAttachment = (newAttachement, callback) => {
                                         callback(false, "Aucune mise à jour")
                                     }
                                 }
-                            })                      
+                            })
                         } else {
                             callback(false, message)
                         }
@@ -174,12 +174,12 @@ module.exports.getDetails = (id, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors la  récupération des détails de l'offre : " +err)
+                callback(false, "Une erreur est survenue lors la  récupération des détails de l'offre : " + err)
             } else {
                 if (resultAggr.length) {
                     var user = require("./Users");
-                    
-                    resultAggr[0].id_user = resultAggr[0].id_employer; 
+
+                    resultAggr[0].id_user = resultAggr[0].id_employer;
                     delete resultAggr[0].id_employer;
 
                     user.initialize(db);
@@ -210,7 +210,7 @@ module.exports.getDetails = (id, callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -246,12 +246,12 @@ module.exports.sendingMessage = (newMessage, callback) => {
             if (isFound) {
                 if (newMessage.id_sender == result.id_employer || newMessage.id_sender == result.id_freelancer) {
                     if (newMessage.message && newMessage.message.trim(" ")) {
-                        
+
                         delete newMessage.id_offer;
 
                         var filter = {
-                                "_id": result._id
-                            },
+                            "_id": result._id
+                        },
                             update = {
                                 "$push": {
                                     "messages": newMessage
@@ -260,7 +260,7 @@ module.exports.sendingMessage = (newMessage, callback) => {
 
                         collection.value.updateOne(filter, update, (err, resultUp) => {
                             if (err) {
-                                callback(false, "Une erreur de l'envoi du message de l'offre : " +err)
+                                callback(false, "Une erreur de l'envoi du message de l'offre : " + err)
                             } else {
                                 if (resultUp) {
                                     var notification = require("./Notification"),
@@ -289,6 +289,73 @@ module.exports.sendingMessage = (newMessage, callback) => {
             }
         })
     } catch (exception) {
-        
+
+    }
+}
+
+//Récupérations des messages des offres pour un utilisateur
+module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "$or": [
+                        { "id_employer": id_user },
+                        { "id_freelancer": id_user }
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "messages": 1
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la recherche des messages des offres pour ce user : " + err)
+            } else {
+                if (resultAggr.length) {
+                    var user = require("./Users"),
+                        outOffer = 0,
+                        listOut = [];
+
+                    user.initialize(db);
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+
+                        var outMessage = 0,
+                            listOutMessage = [];
+
+                        for (let indexMessage = 0; indexMessage < resultAggr[index].messages.length; indexMessage++) {
+
+                            resultAggr[index].messages[indexMessage].id_user = resultAggr[index].messages[indexMessage].id_sender;
+
+                            user.getInfos(resultAggr[index].messages[indexMessage], (isGet, message, result) => {
+                                outOffer++;
+                                if (isGet) {
+                                    delete resultAggr[index].messages[indexMessage].id_sender;
+
+                                    resultAggr[index].messages[indexMessage].infos_sender = result;
+
+                                    listOut.push(resultAggr[index]);
+                                }
+
+                                outMessage++;
+
+                                if (outOffer == resultAggr.length) {
+                                    callback(true, "Les messages sont renvoyé", listOut)
+                                }
+
+                            })
+                        }
+                    }
+                } else {
+                    callback(false, "Aucun message n'a été repertorié")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la recherche des messages des offres pour ce user : " + exception)
     }
 }

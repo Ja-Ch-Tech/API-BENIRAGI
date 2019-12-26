@@ -566,7 +566,7 @@ module.exports.getInfos = (objet, callback) => {
                                 delete resultWithMedia.flag;
                                 delete resultWithMedia.id_type;
                                 delete resultWithMedia.visibility;
-                                delete resultWithMedia.identity.created_at;
+                                resultWithMedia.identity ? delete resultWithMedia.identity.created_at : null;
 
                                 callback(true, "Les infos de l'utilisateur est renvoyé", resultWithMedia)
                             })
