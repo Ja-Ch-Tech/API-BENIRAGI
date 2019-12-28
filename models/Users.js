@@ -112,14 +112,14 @@ function testEmail(user, callback) {
 
 function sendCode(account, callback) {
 
-    const output = 'Votre code de confirmation : <b style="color: #ff4500; font-family: Century Gothic; font-size: 1.4em">' + account.code + '</b><br>e-Bantu, votre parcours commence maintenant';
+    const output = 'Votre code de confirmation : <b style="color: #ff4500; font-family: Century Gothic; font-size: 1.4em">' + account.code + '</b><br>Beniragi-Serice';
 
     let transporter = nodemailer.createTransport({
         host: "smtp.live.com",
         port: 587,
         secure: false,
         auth: {
-            user: "frdrcpeter@hotmail.com",
+            user: "anonymouspeter007@hotmail.com",
             pass: "tubemate123"
         },
         tls: {
@@ -128,7 +128,7 @@ function sendCode(account, callback) {
     });
 
     let mailOptions = {
-        from: '"e-Bantu / Le côté magique du commerce" <frdrcpeter@hotmail.com>',
+        from: '"Beniragi-Service" <anonymouspeter007@hotmail.com>',
         to: account.email,
         subject: "Activation de compte",
         html: output
