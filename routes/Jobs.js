@@ -5,7 +5,8 @@ var db = require("../models/db"),
     model = require("../models/Jobs");
 
 router.get("/get/:limit", (req, res) => {
-    var objetRetour = require("./ObjetRetour").ObjetRetour();
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        limit = req.params.limit && parseInt(req.params.limit) ? parseInt(req.params.limit) : null;
 
     model.initialize(db);
     model.getJobs(limit, (isGet, message, result) => {

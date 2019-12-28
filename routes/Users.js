@@ -104,7 +104,7 @@ router.post('/setJob', (req, res) => {
     entity.id_job = req.body.id_job;
 
     model.initialize(db);
-    model.setIdentity(entity, (isSet, message, result) => {
+    model.setJobs(entity, (isSet, message, result) => {
         objetRetour.getEtat = isSet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
@@ -123,6 +123,24 @@ router.get('/details/:id_user', (req, res) => {
     model.initialize(db);
     model.getInfos(objet, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Définir des skills pour ce job
+router.post('/setSkills', (req, res) => {
+    var entity = require("../models/entities/Users").Skills(),
+        objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    entity.id_user = req.body.id_user;
+    entity.skills = JSON.parse(req.body.skills);
+
+    model.initialize(db);
+    model.setSkills(entity, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 

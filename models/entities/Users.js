@@ -21,21 +21,28 @@ module.exports.Identity = function Identity() {
 
 module.exports.Job = function Job() {
     return  {
-        "id_user": String,
-        "id_job": String
+        id_user: String,
+        id_job: String
     }
 }
 
 module.exports.Avatar = function Avatar() {
     return {
-        "id_user": String,
-        "id_avatar": String
+        id_user: String,
+        id_avatar: String
     }
 }
 
 module.exports.Docs = function Docs() {
     return {
-        "id_user": String,
-        "id_docs": String
+        id_user: String,
+        id_docs: String
+    }
+}
+
+module.exports.Skills = function Skills() {
+    return {
+        id_user: String,
+        skills: Array
     }
 }

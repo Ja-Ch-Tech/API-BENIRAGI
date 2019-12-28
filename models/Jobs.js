@@ -17,13 +17,32 @@ module.exports.getJobs = (limit, callback) => {
             {
                 "$match": {}
             },
-            limit
+            limit,
+            {
+                "$sort": { "created_at": -1 }
+            }
         ]).toArray((err, resultAggr) => {
             if (err) {
                 callback(false, "Une erreur lors de la récupération des metier : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(true, "Les metiers sont renvoyés", resultAggr)
+                    var users = require("./Users"),
+                        outJobs = 0,
+                        listJobs = [];
+
+                    users.initialize(db);
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        users.countUsersForJobs(resultAggr[index], (isCount, message, result) => {
+                            outJobs++;
+                            listJobs.push(result);
+
+                            if (outJobs == resultAggr.length) {
+                                callback(true, "Les metiers sont renvoyés", resultAggr)
+                            }
+                        })
+                    }
+
                 } else {
                     callback(false, "Aucun metier")
                 }

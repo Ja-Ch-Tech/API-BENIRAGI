@@ -405,7 +405,8 @@ module.exports.setJobs = (newJobs, callback) => {
                 var jobs = require("./Jobs");
 
                 jobs.initialize(db);
-                jobs.findOneById(newJobs.id_job, (isFound, message, result) => {
+                jobs.findOneById(newJobs.id_job, (isFound, message, resultJobs) => {
+                    
                     if (isFound) {
                         var filter = {
                             "_id": result._id
@@ -500,8 +501,8 @@ module.exports.setDocs = (newDocs, callback) => {
                 media.findOneById(newDocs.id_media, (isFound, message, result) => {
                     if (isFound) {
                         var filter = {
-                                "_id": result._id
-                            },
+                            "_id": result._id
+                        },
                             update = {
                                 "$push": {
                                     "docs": newDocs
@@ -546,7 +547,7 @@ module.exports.getInfos = (objet, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de la récupération des infos du user : " +err)
+                callback(false, "Une erreur est survenue lors de la récupération des infos du user : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     delete resultAggr[0].created_at;
@@ -559,7 +560,7 @@ module.exports.getInfos = (objet, callback) => {
                             var media = require("./Media");
 
                             media.getInfos(result, (isGet, message, resultWithMedia) => {
-                                
+
                                 //Suppression de datas en trop
                                 delete resultWithMedia._id;
                                 delete resultWithMedia.password;
@@ -600,5 +601,102 @@ module.exports.isEmployer = (id, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception de détermination : " + exception)
+    }
+}
+
+//Comptage des utilisateur ayant un job précis
+module.exports.countUsersForJobs = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "jobs.id_job": "" + objet._id
+                }
+            },
+            {
+                "$count": "nbre"
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                objet.nbre = 0;
+                callback(false, "Erreur lors du comptage des utilisateurs ayant ce job : " + err, objet)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.nbre = resultAggr[0].nbre;
+                    callback(true, `Le nombre d'utilisateur étant ${objet.name} est renvoyé`, objet)
+                } else {
+                    objet.nbre = 0;
+                    callback(false, `Aucun utilisateur n'est ${objet.name}`, objet)
+                }
+            }
+        })
+    } catch (exception) {
+
+    }
+}
+
+//Définition des skills (Talents)
+module.exports.setSkills = (newSkills, callback) => {
+    try {
+        this.findOneById(newSkills.id_user, (isFound, message, result) => {
+            if (isFound) {
+                if (result.jobs) {
+                    if (newSkills.skills.length > 0) {
+                        var skills = require("./Skills"),
+                            outSkills = 0,
+                            listOut = [];
+
+                        skills.initialize(db);
+                        for (let index = 0; index < newSkills.skills.length; index++) {
+                            var formatedSkill = {
+                                "id_job": result.jobs.id_job,
+                                "name": newSkills.skills[index]
+                            };
+                            skills.smallSearch(formatedSkill, (isFoundOrCreatedd, messageSkills, resultWithSkills) => {
+                                outSkills++;
+
+                                if (isFoundOrCreatedd) {
+                                    listOut.push("" + resultWithSkills._id);
+                                }
+
+                                if (outSkills == newSkills.skills.length) {
+                                    var filter = {
+                                        "_id": require("mongodb").ObjectId(newSkills.id_user)
+                                    },
+                                        update = {
+                                            "$set": {
+                                                "jobs.skills": listOut
+                                            }
+                                        }
+                                        ;
+
+                                    collection.value.updateOne(filter, update, (err, resultUp) => {
+                                        if (err) {
+                                            callback(false, "Une erreur est survenue lors de la mise à jours des skills : " + err)
+                                        } else {
+                                            if (resultUp) {
+                                                callback(true, "La mise à jour des skills a été faites avec succès", resultUp)
+                                            } else {
+                                                callback(false, "Aucune mise à jour des skills n'a été faite")
+                                            }
+                                        }
+                                    })
+                                }
+                            })
+                        }
+
+                    } else {
+                        callback(false, "Aucun skills n'a été spécifié")
+                    }
+                } else {
+                    callback(false, "Vous devez d'abord spécifié un metier, avant d'y ajouter vos compétences")
+                }
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jours des skills : " + exception)
     }
 }
