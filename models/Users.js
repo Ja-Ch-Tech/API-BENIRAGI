@@ -49,7 +49,7 @@ module.exports.register = (newUser, callback) => {
                                                 if (isGenerate) {
                                                     sendCode(resultWithCode, (isSend, message, resultSend) => {
                                                         if (isSend) {
-                                                            callback(true, "Le code est envoyé à votre adresse e-mail", resultWithCode)
+                                                            callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
                                                         } else {
                                                             callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
                                                         }
@@ -247,9 +247,11 @@ module.exports.login = (obj, callback) => {
 
                                 var id_user = "" + resultAggr[0]._id,
                                     id_type = resultAggr[0].id_type,
+                                    flag = resultAggr[0].flag,
                                     objetRetour = {
                                         "id_user": id_user,
-                                        "id_type": id_type
+                                        "id_type": id_type,
+                                        "flag": flag
                                     };
 
                                 var type = require("./TypeUsers");
@@ -541,7 +543,6 @@ module.exports.getInfos = (objet, callback) => {
             {
                 "$match": {
                     "_id": require("mongodb").ObjectId(objet.id_user),
-                    "visibility": true,
                     "flag": true
                 }
             }
@@ -564,8 +565,6 @@ module.exports.getInfos = (objet, callback) => {
                                 //Suppression de datas en trop
                                 delete resultWithMedia._id;
                                 delete resultWithMedia.password;
-                                delete resultWithMedia.flag;
-                                delete resultWithMedia.visibility;
 
                                 callback(true, "Les infos de l'utilisateur est renvoyé", resultWithMedia)
                             })
