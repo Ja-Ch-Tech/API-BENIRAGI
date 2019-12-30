@@ -813,7 +813,13 @@ module.exports.stats = (id, callback) => {
                     callback(true, "Voici les stats", resultWithStats)
                 })
             } else {
-                callback(false, message)
+                //callback(false, message)
+                var offer = require("./Offer");
+
+                offer.initialize(db);
+                offer.getStats(id, (isGet, message, resultWithStats) => {
+                    callback(true, "Voici les stats d'un employeur", resultWithStats)
+                })
             }
         })
     } catch (exception) {

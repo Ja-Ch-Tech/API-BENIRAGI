@@ -359,3 +359,8 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
         callback(false, "Une exception a été lévée lors de la recherche des messages des offres pour ce user : " + exception)
     }
 }
+
+//En continue
+module.exports.getStats = (id, callback) => {
+    callback(true, "Je continue", {a: 5})
+}
