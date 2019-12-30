@@ -150,7 +150,6 @@ module.exports.getFeedBacks = (objet, callback) => {
                                 delete result.flag;
                                 delete result.visibility;
                                 delete result.created_at;
-                                delete result.identity.created_at;
                                 delete result.typeUser;
 
                                 delete resultAggr[index]._id;
@@ -175,6 +174,65 @@ module.exports.getFeedBacks = (objet, callback) => {
                 }
             }
         })
+    } catch (exception) {
+        
+    }
+}
+
+//Récupération des stats
+module.exports.getStats = (id, callback) => {
+    try {
+        
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_freelancer",
+                    "average": {
+                        "$avg": "$note"
+                    },
+                    "nbreFeedBack": { "$sum": 1 }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du comptage des évaluation ou de la récuoération de la moyenne : " + err)
+            } else {
+                var objet = {};
+
+                if (resultAggr.length > 0) {
+                    objet.average = resultAggr[0].average;
+                    objet.nbreFeedBack = resultAggr[0].nbreFeedBack;
+                    objet.id_freelancer = resultAggr[0]._id;
+                    
+                    var view = require("./View");
+                    
+                    view.initialize(db);
+                    view.getStats(objet, (isGet, message, result) => {
+                        delete result.id_freelancer;
+                        callback(isGet, message, result)
+                    });
+
+                } else {
+                    objet.average = 0;
+                    objet.nbreFeedBack = 0;
+                    objet.id_freelancer = id;
+
+                    var view = require("./View");
+
+                    view.initialize(db);
+                    view.getStats(objet, (isGet, message, result) => {
+                        delete result.id_freelancer;
+                        callback(isGet, message, result)
+                    });
+                }
+            }
+        })
+            
     } catch (exception) {
         
     }

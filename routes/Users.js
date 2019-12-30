@@ -112,10 +112,11 @@ router.post('/setJob', (req, res) => {
 })
 
 //Pour récupérer les détails d'un utilisateur
-router.get('/details/:id_user', (req, res) => {
+router.get('/details/:id_user/:id_viewer', (req, res) => {
     var objetRetour = require("./ObjetRetour").ObjetRetour(),
         objet = {
-            "id_user": req.params.id_user
+            "id_user": req.params.id_user,
+            "id_viewer": req.params.id_viewer && req.params.id_viewer != "null" ? req.params.id_viewer : null 
         };
 
     model.initialize(db);
@@ -188,6 +189,20 @@ router.post('/setAttachment', (req, res) => {
     model.initialize(db);
     model.setAttachment(entity, (isSet, message, result) => {
         objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Récupère les petitest stats (average, nbreFeedBacks, nbreView)
+router.get('/stats/:id_freelancer', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.initialize(db);
+    model.stats(req.params.id_freelancer, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 

@@ -408,7 +408,7 @@ module.exports.setJobs = (newJobs, callback) => {
 
                 jobs.initialize(db);
                 jobs.findOneById(newJobs.id_job, (isFound, message, resultJobs) => {
-                    
+
                     if (isFound) {
                         var filter = {
                             "_id": result._id
@@ -566,11 +566,19 @@ module.exports.getInfos = (objet, callback) => {
 
                                 town.initialize(db);
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
-                                    //Suppression de datas en trop
-                                    delete resultWithMedia._id;
-                                    delete resultWithMedia.password;
 
-                                    callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+
+                                    var view = require("./View"),
+                                        entity = require("./entities/View").View(resultWithTown._id, resultWithTown.id_viewer ? resultWithTown.id_viewer : null);
+
+                                    view.initialize(db);
+                                    view.create(entity, (isCreated, message, result) => {
+                                        //Suppression de datas en trop
+                                        delete resultWithTown._id;
+                                        delete resultWithTown.password;
+                                        callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+                                    })
+
                                 })
                             })
 
@@ -596,7 +604,7 @@ module.exports.isEmployer = (id, callback) => {
                 var type_users = require("./TypeUsers");
 
                 type_users.initialize(db);
-                type_users.isEmployer(result.id_type, (isFound, message, result) => {
+                type_users.isEmployer(result, (isFound, message, result) => {
                     callback(isFound, message, result);
                 })
             } else {
@@ -737,7 +745,7 @@ module.exports.setTown = (newTown, callback) => {
                         callback(false, message)
                     }
                 })
-                
+
             } else {
                 callback(false, message)
             }
@@ -790,5 +798,25 @@ module.exports.setAttachment = (newAttachment, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la définition des pièces jointes : " + exception)
+    }
+}
+
+//Récupération des statistiques
+module.exports.stats = (id, callback) => {
+    try {
+        this.isEmployer(id, (isEmployer, message, result) => {
+            if (!isEmployer) {
+                var evaluation = require("./Evaluation");
+
+                evaluation.initialize(db);
+                evaluation.getStats(id, (isGet, message, resultWithStats) => {
+                    callback(true, "Voici les stats", resultWithStats)
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des certains stats : " + exception)
     }
 }

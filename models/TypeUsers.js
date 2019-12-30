@@ -69,12 +69,12 @@ module.exports.findOne = (id, callback) => {
 }
 
 //Détermine le types d'un user
-module.exports.isEmployer = (id, callback) => {
+module.exports.isEmployer = (objet, callback) => {
     try {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(id),
+                    "_id": require("mongodb").ObjectId(objet.id_type),
                     "intitule": new RegExp("Employeur", "i")
                 }
             }
@@ -83,9 +83,11 @@ module.exports.isEmployer = (id, callback) => {
                 callback(false, "Une erreur de détermination : " + err)
             } else {
                 if (resultAggr.length) {
-                    callback(true, "Est employeur")
+                    objet.isEmployer  = true;
+                    callback(true, "Est employeur", objet)
                 } else {
-                    callback(false, "N'est pas employeur")
+                    objet.isEmployer  = true;
+                    callback(false, "N'est pas employeur", objet)
                 }
             }
         })
