@@ -564,6 +564,7 @@ module.exports.getInfos = (objet, callback) => {
 
                                 var town = require("./Town");
 
+                                town.initialize(db);
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
                                     //Suppression de datas en trop
                                     delete resultWithMedia._id;

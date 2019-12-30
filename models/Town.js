@@ -85,7 +85,7 @@ module.exports.getInfos = (objet, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une erreur a été lévée lors de la récupération de la ville de l'utilisateur : " +err)
+        callback(false, "Une erreur a été lévée lors de la récupération de la ville de l'utilisateur : " + exception)
     }
 }
 

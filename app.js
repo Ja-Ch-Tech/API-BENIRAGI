@@ -1,3 +1,8 @@
+/**========================================================
+ * 
+ * Dévéloppé par Ja'Ch Technologies, Décembre 2019
+ * 
+ ===========================================================*/
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
