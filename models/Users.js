@@ -365,7 +365,7 @@ module.exports.getNumberForTypeUser = (callback) => {
 //Définition de l'identité de la personne
 module.exports.setIdentity = (newIdentity, callback) => {
     try {
-        module.exports.findOneById(newIdentity.id_user, (isFound, message, result) => {
+        this.findOneById(newIdentity.id_user, (isFound, message, result) => {
             if (isFound) {
                 delete newIdentity.id_user;
                 var filter = {
@@ -401,7 +401,7 @@ module.exports.setIdentity = (newIdentity, callback) => {
 //Pour définir le job
 module.exports.setJobs = (newJobs, callback) => {
     try {
-        module.exports.findOneById(newJobs.id_user, (isFound, message, result) => {
+        this.findOneById(newJobs.id_user, (isFound, message, result) => {
             if (isFound) {
                 delete newJobs.id_user;
                 var jobs = require("./Jobs");
@@ -448,13 +448,13 @@ module.exports.setJobs = (newJobs, callback) => {
 //Définition de l'avatar
 module.exports.setAvatar = (newAvatar, callback) => {
     try {
-        module.exports.findOneById(newAvatar.id_user, (isFound, message, result) => {
+        this.findOneById(newAvatar.id_user, (isFound, message, result) => {
             if (isFound) {
                 delete newAvatar.id_user;
                 var media = require("./Media");
 
                 media.initialize(db);
-                media.findOneById(newAvatar.id_media, (isFound, message, result) => {
+                media.findOneById(newAvatar.id_media, (isFound, message, resultMedia) => {
                     if (isFound) {
                         var filter = {
                             "_id": result._id
@@ -494,13 +494,13 @@ module.exports.setAvatar = (newAvatar, callback) => {
 //Définition des documents
 module.exports.setDocs = (newDocs, callback) => {
     try {
-        module.exports.findOneById(newDocs.id_user, (isFound, message, result) => {
+        this.findOneById(newDocs.id_user, (isFound, message, result) => {
             if (isFound) {
                 delete newDocs.id_user;
                 var media = require("./Media");
 
                 media.initialize(db);
-                media.findOneById(newDocs.id_media, (isFound, message, result) => {
+                media.findOneById(newDocs.id_media, (isFound, message, resultMedia) => {
                     if (isFound) {
                         var filter = {
                             "_id": result._id
@@ -562,11 +562,15 @@ module.exports.getInfos = (objet, callback) => {
 
                             media.getInfos(result, (isGet, message, resultWithMedia) => {
 
-                                //Suppression de datas en trop
-                                delete resultWithMedia._id;
-                                delete resultWithMedia.password;
+                                var town = require("./Town");
 
-                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithMedia)
+                                town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
+                                    //Suppression de datas en trop
+                                    delete resultWithMedia._id;
+                                    delete resultWithMedia.password;
+
+                                    callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+                                })
                             })
 
                         } else {
@@ -697,5 +701,93 @@ module.exports.setSkills = (newSkills, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la mise à jours des skills : " + exception)
+    }
+}
+
+//Définition de la ville
+module.exports.setTown = (newTown, callback) => {
+    try {
+        this.findOneById(newTown.id_user, (isFound, message, result) => {
+            if (isFound) {
+                var town = require("./Town");
+
+                town.initialize(db);
+                town.findOneById(newTown.id_town, (isFound, message, resultTown) => {
+                    if (isFound) {
+                        var filter = {
+                            "_id": result._id
+                        },
+                            update = {
+                                "id_town": newTown.id_town
+                            };
+
+                        collection.value(filter, update, (err, resultUp) => {
+                            if (err) {
+                                callback(false, "Une erreur est survenue lors de la définition de la ville : " + err)
+                            } else {
+                                if (resultUp) {
+                                    callback(true, "La ville a été mise à jour", resultUp)
+                                } else {
+                                    callback(false, "Aucune mise à jour")
+                                }
+                            }
+                        })
+                    } else {
+                        callback(false, message)
+                    }
+                })
+                
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la définition de la ville : " + exception)
+    }
+}
+
+//Définition de pièce jointe
+module.exports.setAttachment = (newAttachment, callback) => {
+    try {
+        this.findOneById(newAttachment.id_user, (isFound, message, result) => {
+            if (isFound) {
+                delete newAttachment.id_user;
+                var media = require("./Media");
+
+                media.initialize(db);
+                media.findOneById(newAttachment.attachment, (isFound, message, resultMedia) => {
+                    if (isFound) {
+                        var filter = {
+                            "_id": result._id
+                        },
+                            update = {
+                                "$set": {
+                                    "attachment": newAttachment.attachment
+                                }
+                            };
+
+                        collection.value.updateOne(filter, update, (err, resultUp) => {
+                            if (err) {
+                                callback(false, "Une erreur lors de la mise à jour : " + err)
+                            } else {
+                                if (resultUp) {
+                                    callback(true, "La mise à jour a été faites", resultUp)
+                                } else {
+                                    callback(false, "Aucune mise à jour")
+                                }
+                            }
+                        })
+                    } else {
+                        callback(false, message)
+                    }
+                })
+
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la définition des pièces jointes : " + exception)
     }
 }

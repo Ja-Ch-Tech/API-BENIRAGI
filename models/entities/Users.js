@@ -9,8 +9,9 @@ module.exports.Users = function Users() {
     }
 }
 
-module.exports.Identity = function Identity() {
+module.exports.Identity = function Identity(id_user) {
     return {
+        id_user: id_user,
         name: String,
         lastName: String,
         postName: String,
@@ -19,30 +20,44 @@ module.exports.Identity = function Identity() {
     }
 }
 
-module.exports.Job = function Job() {
+module.exports.Job = function Job(id_user) {
     return  {
-        id_user: String,
+        id_user: id_user,
         id_job: String
     }
 }
 
-module.exports.Avatar = function Avatar() {
+module.exports.Avatar = function Avatar(id_user) {
     return {
-        id_user: String,
+        id_user: id_user,
         id_avatar: String
     }
 }
 
-module.exports.Docs = function Docs() {
+module.exports.Docs = function Docs(id_user) {
     return {
-        id_user: String,
+        id_user: id_user,
         id_docs: String
     }
 }
 
-module.exports.Skills = function Skills() {
+module.exports.Skills = function Skills(id_user) {
     return {
-        id_user: String,
+        id_user: id_user,
         skills: Array
+    }
+}
+
+module.exports.Town = function Town(id_user) {
+    return {
+        id_user: id_user,
+        id_town: String
+    }
+}
+
+module.exports.Attachment = function Attachment(id_user) {
+    return {
+        id_user: id_user,
+        attachment: String
     }
 }
