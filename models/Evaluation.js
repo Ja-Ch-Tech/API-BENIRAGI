@@ -237,3 +237,53 @@ module.exports.getStats = (id, callback) => {
         
     }
 }
+
+//Récupération des stats de l'employeur
+module.exports.getStatsForEmployer = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_employer": id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_employer",
+                    "nbreFeedBack": { "$sum": 1 }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du comptage des évaluation : " + err)
+            } else {
+                var objet = {};
+
+                if (resultAggr.length > 0) {
+                    objet.nbreFeedBack = resultAggr[0].nbreFeedBack;
+                    objet.id_employer = resultAggr[0]._id;
+
+                    var offer = require("./Offer");
+
+                    offer.initialize(db);
+                    offer.getCountForEmployer(objet, (isGet, message, resultWithOfferCount) => {
+                        callback(true, "Le stats pour lui", resultWithOfferCount);
+                    })
+
+                } else {
+                    objet.nbreFeedBack = 0;
+                    objet.id_employer = resultAggr[0]._id;
+                    
+                    var offer = require("./Offer");
+
+                    offer.initialize(db);
+                    offer.getCountForEmployer(objet, (isGet, message, resultWithOfferCount) => {
+                        callback(true, "Le stats pour lui", resultWithOfferCount);
+                    })
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du comptage des évaluation : " + exception)
+    }
+}

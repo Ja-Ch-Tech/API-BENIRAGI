@@ -12,32 +12,37 @@ module.exports.initialize = function (db_js) {
 //Création d'une vue de profile
 module.exports.create = (newView, callback) => {
     try {
-        var users = require("./Users");
+        if (newView.id_freelancer != newView.id_viewer) {
+            var users = require("./Users");
 
-        users.initialize(db);
-        users.isEmployer(newView.id_freelancer, (isEmployer, message, result) => {
-            if (!isEmployer) {
-                if (!/anonyme|anonymous|anonymes/i.test(newView.id_viewer)) {
+            users.initialize(db);
+            users.isEmployer(newView.id_freelancer, (isEmployer, message, result) => {
+                if (!isEmployer) {
+                    if (!/anonyme|anonymous|anonymes/i.test(newView.id_viewer)) {
 
-                    users.findOneById(newView.id_viewer, (isFound, message, result) => {
-                        if (isFound) {
-                            insertView(newView, (isInsert, message, result) => {
-                                callback(isInsert, message, result)
-                            })
-                        } else {
-                            callback(false, message)
-                        }
-                    })
+                        users.findOneById(newView.id_viewer, (isFound, message, result) => {
+                            if (isFound) {
+                                insertView(newView, (isInsert, message, result) => {
+                                    callback(isInsert, message, result)
+                                })
+                            } else {
+                                callback(false, message)
+                            }
+                        })
+                    } else {
+                        insertView(newView, (isInsert, message, result) => {
+                            callback(isInsert, message, result)
+                        })
+                    }
                 } else {
-                    insertView(newView, (isInsert, message, result) => {
-                        callback(isInsert, message, result)
-                    })
+                    callback(false, message)
                 }
-            } else {
-                callback(false, message)
-            }
-        })
-        
+            })
+        } else {
+            callback(false, "La création de la vue ne peut pas se faire sur vous même")
+        }
+
+
     } catch (exception) {
         callback(false, "Une exception a été lévé lors de l'insertion de la vue : " + exception)
     }

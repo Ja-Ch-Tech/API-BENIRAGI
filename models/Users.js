@@ -224,7 +224,8 @@ module.exports.login = (obj, callback) => {
         {
             "$project": {
                 "password": 1,
-                "id_type": 1
+                "id_type": 1,
+                "flag": 1
             }
         }
         ]).toArray(function (errAggr, resultAggr) {
@@ -254,14 +255,10 @@ module.exports.login = (obj, callback) => {
                                         "flag": flag
                                     };
 
-                                var type = require("./TypeUsers");
-
-                                type.initialize(db);
-
-                                //La sauvegarde de la connexion d'un client
-                                type.getTypeForUser(objetRetour, (isGet, message, resultWithType) => {
+                                this.isEmployer(objetRetour.id_user, (isGet, message, resultEmployer) => {
                                     if (isGet) {
-                                        callback(true, `Vous êtes connecté en atant que ${resultWithType.typeUser}`, resultWithType)
+                                        objetRetour.isEmployer = resultEmployer.isEmployer;
+                                        callback(true, `Vous êtes connecté en tant que ${objetRetour.isEmployer ? "employeur" : "freelancer"}`, objetRetour)
                                     } else {
                                         callback(false, message)
                                     }
@@ -539,6 +536,7 @@ module.exports.setDocs = (newDocs, callback) => {
 //Pour recupérer les infos d'un user
 module.exports.getInfos = (objet, callback) => {
     try {
+        
         collection.value.aggregate([
             {
                 "$match": {
@@ -566,7 +564,6 @@ module.exports.getInfos = (objet, callback) => {
 
                                 town.initialize(db);
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
-
 
                                     var view = require("./View"),
                                         entity = require("./entities/View").View(resultWithTown._id, resultWithTown.id_viewer ? resultWithTown.id_viewer : null);
@@ -814,10 +811,10 @@ module.exports.stats = (id, callback) => {
                 })
             } else {
                 //callback(false, message)
-                var offer = require("./Offer");
+                var evaluation = require("./Evaluation");
 
-                offer.initialize(db);
-                offer.getStats(id, (isGet, message, resultWithStats) => {
+                evaluation.initialize(db);
+                evaluation.getStatsForEmployer(id, (isGet, message, resultWithStats) => {
                     callback(true, "Voici les stats d'un employeur", resultWithStats)
                 })
             }

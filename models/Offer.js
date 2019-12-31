@@ -361,6 +361,37 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
 }
 
 //En continue
-module.exports.getStats = (id, callback) => {
-    callback(true, "Je continue", {a: 5})
+module.exports.getCountForEmployer = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_employer": objet.id_employer
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_employer",
+                    "nbreOffer": { "$sum": 1 }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du comptage des évaluation : " + err)
+            } else {
+
+                if (resultAggr.length > 0) {
+                    objet.nbreOffer = resultAggr[0].nbreOffer;
+
+                    callback(true, "Le stats pour lui", objet);
+
+                } else {
+                    objet.nbreOffer = 0;
+                    callback(false, "Le stats pour lui", objet);
+                }
+            }
+        })
+    } catch (exception) {
+        
+    }
 }
