@@ -11,7 +11,7 @@ var logger = require('morgan');
 
 var db = require("./models/db");
 
-//mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority
+//mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
 var string_con = 'mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority';
 
@@ -33,6 +33,7 @@ var jobsRouter = require('./routes/Jobs');
 var offerRouter = require('./routes/Offer');
 var evaluationRouter = require('./routes/Evaluation');
 var townRouter = require('./routes/Town');
+var viewRouter = require('./routes/View');
 
 //For admin
 var jobsAdminRouter = require("./routes/admin/Jobs");
@@ -64,6 +65,7 @@ app.use('/jobs', jobsRouter);
 app.use('/offer', offerRouter);
 app.use('/evaluation', evaluationRouter);
 app.use('/town', townRouter);
+app.use('/view', viewRouter);
 
 //For admin
 app.use('/admin/jobs', jobsAdminRouter);

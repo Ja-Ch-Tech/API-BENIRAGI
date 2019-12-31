@@ -63,7 +63,6 @@ function insertView(objet, callback) {
     })
 }
 
-
 //La suite des récupérations des stats
 module.exports.getStats = (objet, callback) => {
     try {
@@ -92,4 +91,69 @@ module.exports.getStats = (objet, callback) => {
     } catch (exception) {
         callback(false, "Une exception a été lévée du comptage des vues : " + exception)
     }
+}
+
+//Module permettant d'y générer le graphe pour un freelancer
+module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
+    try {
+        var users = require("./Users");
+
+        users.initialize(db);
+        users.isEmployer(id_freelancer, (isEmployer, message, result) => {
+            if (!isEmployer) {
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "id_freelancer": id_freelancer
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": "$month",
+                            "nbreVisite": {"$sum": 1}
+                        }
+                    },
+                    {
+                        "$limit": 6
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la récupération du graph : " + err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var outGraph = 0,
+                                listOut = [];
+
+                            for (let index = 0; index < resultAggr.length; index++) {
+                                var month = getMonth(resultAggr[index]._id);
+                                listOut.push({ month: month, nbreVisite: resultAggr[index].nbreVisite})
+
+                                outGraph++;
+
+                                if (outGraph == resultAggr.length) {
+                                    callback(false, "Le graphe a été renvoyé", listOut)
+                                }
+                            }
+                        } else {
+                            callback(false, "Aucune vue, donc aucun grapphe")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération du graph : " + exception)
+    }
+}
+
+/**
+ * Récupération du mois en question
+ * @param {Number} month Le mois en question
+ */
+function getMonth(month) {
+    var monthLetters = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
+    return monthLetters[parseInt(month) - 1];
 }

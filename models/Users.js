@@ -214,6 +214,7 @@ module.exports.activateAccount = (obj, callback) => {
     }
 }
 
+//Pour la connexion
 module.exports.login = (obj, callback) => {
     try {
         collection.value.aggregate([{
@@ -255,7 +256,7 @@ module.exports.login = (obj, callback) => {
                                         "flag": flag
                                     };
 
-                                this.isEmployer(objetRetour.id_user, (isGet, message, resultEmployer) => {
+                                module.exports.isEmployer(objetRetour.id_user, (isGet, message, resultEmployer) => {
                                     if (isGet) {
                                         objetRetour.isEmployer = resultEmployer.isEmployer;
                                         callback(true, `Vous êtes connecté en tant que ${objetRetour.isEmployer ? "employeur" : "freelancer"}`, objetRetour)
@@ -566,7 +567,7 @@ module.exports.getInfos = (objet, callback) => {
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
 
                                     var view = require("./View"),
-                                        entity = require("./entities/View").View(resultWithTown._id, resultWithTown.id_viewer ? resultWithTown.id_viewer : null);
+                                        entity = require("./entities/View").View("" + resultWithTown._id, resultWithTown.id_viewer ? resultWithTown.id_viewer : null);
 
                                     view.initialize(db);
                                     view.create(entity, (isCreated, message, result) => {
