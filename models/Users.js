@@ -112,7 +112,83 @@ function testEmail(user, callback) {
 
 function sendCode(account, callback) {
 
-    const output = 'Votre code de confirmation : <b style="color: #ff4500; font-family: Century Gothic; font-size: 1.4em">' + account.code + '</b><br>Beniragi-Serice';
+    const output = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Activation de compte</title>
+</head>
+<body>
+    <table  width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 20pt;">
+        <tr>
+            <td rowspan="8" width="25%">&nbsp;</td>
+            <td style="text-align: center;">
+                <div style="font-family: Segoe UI; font-size: 16pt; padding-top: 10pt;">BENIRAGI-SERVICE, All in one</div>
+            </td>
+            <td rowspan="8" width="25%">&nbsp;</td>
+        </tr>
+        <tr>
+            <td style="text-align: center; padding-top: 20pt; padding-bottom: 20pt;">
+                <!-- Image doit être en ligne -->
+                <img src="https://i.goopics.net/xn192.png" alt="Pas trouvé" width="100px" height="100px">
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color: crimson; color: #fff; padding: 15px; text-align: center;">
+                <div style="font-size: 8pt; font-weight: normal; font-family: Arial, Helvetica, sans-serif;">Code de confirmation</div>
+                <div style="font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 39pt; padding-top: 10pt;">${account.code}</div>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td style="background-color: #d1d1d1; padding: 25px;">
+                <div style="line-height: 20pt; letter-spacing: 1.05pt; font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                    Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quaerat dicta incidunt, id corrupti praesentium obcaecati quia quidem rem dolor cumque veritatis itaque accusantium nisi aspernatur distinctio modi libero laborum temporibus.
+                </div>
+                <div style="margin-top: 10pt;">
+                    <a href="https://beniragi-service.herokuapp.com">Consulter le site...</a>
+                </div>
+            </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr>
+            <td align="center">
+                <table width="90%" cellpading="0" cellspacing="0">
+                    <tr style="text-align: center;">
+                        <td style="padding-top: 12pt; padding-bottom: 5pt;">
+                            <img src="https://i.goopics.net/8j3Ow.jpg" style="width: 50px; height: 50px; border-radius: 100%;">
+                            <div style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; color: crimson;">Josué MBUYU</div>
+                        </td>
+                        <td style="padding-top: 12pt; padding-bottom: 5pt;">
+                            <img src="https://i.goopics.net/OQva9.jpg" style="width: 50px; height: 50px; border-radius: 100%;">
+                            <div style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; color: crimson;">Jacob LIMBI</div>
+                        </td>
+                        <td style="padding-top: 12pt; padding-bottom: 5pt;">
+                            <img src="https://i.goopics.net/8j3Ow.jpg" style="width: 50px; height: 50px; border-radius: 100%;">
+                            <div style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; color: crimson;">Alain MK</div>
+                        </td>
+                    </tr>
+                    <tr style="text-align: center;">
+                        <td style="line-height: 12pt; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; padding: 4pt; color: darkgrey;">
+                            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sapiente dolorum expedita dolores aliquid aperiam.
+                        </td>
+                        <td style="line-height: 12pt; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; padding: 4pt; color: darkgrey;">
+                            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sapiente dolorum expedita dolores aliquid aperiam.
+                        </td>
+                        <td style="line-height: 12pt; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; padding: 4pt; color: darkgrey;">
+                            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sapiente dolorum expedita dolores aliquid aperiam..
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
 
     let transporter = nodemailer.createTransport({
         host: "smtp.live.com",
