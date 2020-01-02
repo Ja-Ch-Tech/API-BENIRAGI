@@ -110,8 +110,16 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                     {
                         "$group": {
                             "_id": "$month",
-                            "nbreVisite": {"$sum": 1}
+                            "nbreVisite": {"$sum": 1},
+                            "created_at": {
+                                "$push": {
+                                    "created_at": "$created_at"
+                                }
+                            }
                         }
+                    },
+                    {
+                        "$sort": {"created_at.created_at": -1}
                     },
                     {
                         "$limit": 6
@@ -124,16 +132,28 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                             var outGraph = 0,
                                 listOut = [];
 
-                            for (let index = 0; index < resultAggr.length; index++) {
-                                var month = getMonth(resultAggr[index]._id);
-                                listOut.push({ month: month, nbreVisite: resultAggr[index].nbreVisite})
+                            var sixNextMonth = getSixNextMonth(resultAggr[resultAggr.length - 1]._id);
+
+                            for (let index = 0; index < sixNextMonth.length; index++) {
+
+                                var item = getItem(resultAggr, sixNextMonth[index]);
+                                
+                                if (~sixNextMonth.indexOf(item) || !item) {
+                                    var month = getMonth(sixNextMonth[index]);
+                                    listOut.push({ month: month, nbreVisite: 0 })
+                                } else {
+                                    var month = getMonth(sixNextMonth[index]); 
+                                    listOut.push({ month: month, nbreVisite: item.nbreVisite })
+                                }
 
                                 outGraph++;
 
-                                if (outGraph == resultAggr.length) {
-                                    callback(false, "Le graphe a été renvoyé", listOut)
+                                if (outGraph == sixNextMonth.length) {
+                                    callback(true, "Le graphe a été renvoyé", listOut)
                                 }
                             }
+                            
+
                         } else {
                             callback(false, "Aucune vue, donc aucun grapphe")
                         }
@@ -149,6 +169,17 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
 }
 
 /**
+ * Permet la rcherche d'un élément dans un tableau à une propriété spécifié
+ * @param {Array} tableau Le tableau dont on cherche un élément
+ * @param {Number} id L'id en question
+ */
+function getItem(tableau, id) {
+    const item = tableau.find(item => item._id === id);
+
+    return item;
+}
+
+/**
  * Récupération du mois en question
  * @param {Number} month Le mois en question
  */
@@ -156,4 +187,24 @@ function getMonth(month) {
     var monthLetters = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
     return monthLetters[parseInt(month) - 1];
+}
+
+/**
+ * Module permettant de récupérer le six prochains incluant le mois de départ 
+ * @param {Number} number L'index du premier mois
+ */
+function getSixNextMonth(number) {
+    var monthLetters = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+        out = [];
+
+    for (let index = number; index <= (number + 6); index++) {
+        if (index > monthLetters.length) {
+            var indexReste = index - monthLetters.length;
+            out.push(indexReste);
+        } else {
+            out.push(index)
+        }
+    }
+
+    return out;
 }

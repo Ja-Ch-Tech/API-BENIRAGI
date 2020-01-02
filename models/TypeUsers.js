@@ -86,7 +86,7 @@ module.exports.isEmployer = (objet, callback) => {
                     objet.isEmployer  = true;
                     callback(true, "Est employeur", objet)
                 } else {
-                    objet.isEmployer  = true;
+                    objet.isEmployer  = false;
                     callback(false, "N'est pas employeur", objet)
                 }
             }
