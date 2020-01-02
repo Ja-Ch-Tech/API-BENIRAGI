@@ -133,6 +133,8 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                                 listOut = [];
 
                             var sixNextMonth = getSixNextMonth();
+                            console.log(sixNextMonth);
+                            
 
                             for (let index = 0; index < sixNextMonth.length; index++) {
 
@@ -193,7 +195,7 @@ function getMonth(month) {
  * Module permettant de récupérer le six prochains incluant le mois de départ
  */
 function getSixNextMonth() {
-    var number = parseInt(new Date().getMonth() + 1);
+    var number = parseInt(new Date().getMonth() + 1) + 6;
     var monthLetters = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
         out = [];
 
