@@ -35,7 +35,7 @@ module.exports.smallSearch = (objet, callback) => {
             {
                 "$match": {
                     "id_job": objet.id_job,
-                    "name": { "$regex": objet.name }
+                    "name": { "$regex": new RegExp(objet.name, "i") }
                 }
             }
         ]).toArray((err, resultAggr) => {

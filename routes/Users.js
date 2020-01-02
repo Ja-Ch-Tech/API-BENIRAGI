@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 var db = require("../models/db"),
-    model = require("../models/Users");
+    model = require("../models/Users"),
+    modelEvaluation = require("../models/Evaluation");
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -202,6 +203,41 @@ router.get('/stats/:id_freelancer', (req, res) => {
 
     model.initialize(db);
     model.stats(req.params.id_freelancer, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Récupère les tops freelancer
+router.get('/topFreelance/:limit', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null;
+    
+    modelEvaluation.initialize(db);
+    modelEvaluation.getTop(limit, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Récupération des nouveaux freelances
+/**
+ * Valeur possible pour moment:
+ * new => pour récupérer les nouveaux freelancers
+ * old => pour les anciens
+ */
+router.get('/getFreelancers/:moment/:limit', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null;
+
+    model.initialize(db);
+    model.getFreelancers(limit, req.params.moment, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

@@ -128,3 +128,30 @@ module.exports.getTypeForUser = (obj, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération du type de l'utilisateur : " + exception)
     }
 }
+
+//Pour récupérer l'identifiant courant du type "Freelancer"
+module.exports.currentlyIdForFreelanceType = (callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "intitule": {
+                        "$regex": new RegExp(/freelancer|free|freelance/, "i")
+                    }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération de l'identifiant du type freelancer : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(true, "L'id y est", resultAggr[0])
+                } else {
+                    callback(false, "Aucun id trouvé")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une erreur est survenue lors de la récupération de l'identifiant du type freelancer : " + err)
+    }
+}

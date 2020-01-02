@@ -898,3 +898,122 @@ module.exports.stats = (id, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération des certains stats : " + exception)
     }
 }
+
+//Pour recupérer les infos d'un user
+module.exports.getInfosForFreelancer = (objet, callback) => {
+    try {
+        this.isEmployer(objet._id, (isTrue, message, resultTest) => {
+            if (!isTrue) {
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "_id": require("mongodb").ObjectId(objet._id),
+                            "flag": true,
+                            "visibility": true
+                        }
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la récupération des infos du user : " + err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            resultAggr[0].average = objet.average;
+                            delete resultAggr[0].created_at;
+
+                            var type_users = require("./TypeUsers");
+
+                            type_users.initialize(db);
+                            type_users.getTypeForUser(resultAggr[0], (isGet, message, result) => {
+                                if (isGet) {
+                                    var media = require("./Media");
+
+                                    media.getInfos(result, (isGet, message, resultWithMedia) => {
+
+                                        var town = require("./Town");
+
+                                        town.initialize(db);
+                                        town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
+
+                                            //Suppression de datas en trop
+                                            delete resultWithTown.password;
+
+                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+
+                                        })
+                                    })
+
+                                } else {
+                                    callback(false, message)
+                                }
+                            })
+                        } else {
+                            callback(false, "Aucun user n'y correspond")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+
+
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des infos du user : " + exception)
+    }
+}
+
+//Pour récupérer les nouveaux freelancers
+module.exports.getFreelancers = (limit, moment, callback) => {
+    try {
+        var type_users = require("./TypeUsers");
+
+        type_users.initialize(db);
+        type_users.currentlyIdForFreelanceType((isGet, message, resultWithID) => {
+            if (isGet) {
+                var limitLess = limit && parseInt(limit) ? { "$limit": parseInt(limit) } : { "$match": {} },
+                    sort = /new/i.test(moment) ? {"created_at": -1 } : {"created_at": 1};
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "id_type": "" + resultWithID._id
+                        }
+                    },
+                    {
+                        "$sort": sort
+                    },
+                    limitLess
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est lévée lors de la recherche des nouveaux users : " + err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var outUsers = 0,
+                                listOut = [];
+
+                            for (let index = 0; index < resultAggr.length; index++) {
+                                resultAggr[index]._id = "" + resultAggr[index]._id
+                                this.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
+                                    outUsers++;
+                                    if (isGet) {
+                                        listOut.push(resultWithInfos)
+                                    }
+
+                                    if (outUsers == resultAggr.length) {
+                                        callback(true, "Les nouveaux freelancer y sont", listOut)
+                                    }
+                                })
+                            }
+                        } else {
+                            callback(false, "Aucun nouveau freelancer")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la recherche des nouveaux users : " + exception)
+    }
+}

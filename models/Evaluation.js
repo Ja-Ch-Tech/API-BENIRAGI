@@ -287,3 +287,71 @@ module.exports.getStatsForEmployer = (id, callback) => {
         callback(false, "Une exception a été lévée lors du comptage des évaluation : " + exception)
     }
 }
+
+//Module de récupération de top freelancer
+module.exports.getTop = (limit, callback) => {
+    try {
+        var limitLess = limit && parseInt(limit) ? {"$limit": parseInt(limit)} : {"$match": {}};
+
+        collection.value.aggregate([
+            {
+                "$group": {
+                    "_id": "$id_freelancer",
+                    "average": {
+                        "$avg": "$note"
+                    }
+                }
+            },
+            {
+                "$sort": {"average": 1}
+            },
+            limitLess
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération des top freelancer : " + err)
+            } else {
+                var users = require("./Users");
+
+                users.initialize(db);
+
+                if (resultAggr.length > 0) {
+                    var outTopFreelance = 0,
+                        listOut = [];
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        users.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
+                            outTopFreelance++;
+                            if (isGet) {
+                                listOut.push(resultWithInfos);
+                            }
+
+                            if (outTopFreelance == resultAggr.length) {
+                                if (listOut.length == parseInt(limit)) {
+                                    callback(false, "Voici le top freelancer", listOut);
+                                } else {
+                                    
+                                    var reste = parseInt(limit) - listOut.length;
+                                    users.getFreelancers(reste, "old", (isGet, message, resultOld) => {
+                                        if (isGet) {
+                                            var concatList = listOut.concat(resultOld);
+                                            callback(true, "Voici le top freelancer avec un plus", concatList)
+                                        }else{
+                                            callback(true, "Voici le top freelancer avec un plus", listOut)
+                                        }
+
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }else {
+                    users.getFreelancers(limit, "new", (isDefine, message, resultNew) => {
+                        callback(isDefine, message, resultNew)
+                    })
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des top freelancer : " + exception)
+    }
+}
