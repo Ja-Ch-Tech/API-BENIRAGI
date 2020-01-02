@@ -13,7 +13,7 @@ var db = require("./models/db");
 
 //mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
-var string_con = 'mongodb://localhost/Beniragi';
+var string_con = 'mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 
