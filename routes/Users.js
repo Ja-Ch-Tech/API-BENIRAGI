@@ -135,7 +135,7 @@ router.post('/setSkills', (req, res) => {
     var entity = require("../models/entities/Users").Skills(req.body.id_user),
         objetRetour = require("./ObjetRetour").ObjetRetour();
 
-    entity.skills = JSON.parse(req.body.skills);
+    entity.skills = req.body.skills;
 
     model.initialize(db);
     model.setSkills(entity, (isSet, message, result) => {

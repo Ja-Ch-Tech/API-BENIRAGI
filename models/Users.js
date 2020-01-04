@@ -950,7 +950,29 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                                                 //Suppression de datas en trop
                                                 delete resultWithTown.password;
 
-                                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                                if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills.length > 0) {
+                                                    resultWithFavorite.skills = [];
+                                                    var outSkills = 0,
+                                                        listOut = [],
+                                                        skills = require("./Skills");
+
+                                                    skills.initialize(db);
+                                                    for (let index = 0; index < resultWithFavorite.jobs.skills.length; index++) {
+                                                        skills.findOne(resultWithFavorite.jobs.skills[index], (isGet, message, resultWithSkills) => {
+                                                            outSkills++;
+                                                            if (isGet) {
+                                                                resultWithFavorite.skills.push(resultWithSkills.name)
+                                                            }
+
+                                                            if (outSkills == resultWithFavorite.jobs.skills.length) {
+                                                                callback(true, "Les infos des tops freelancers sont renvoyé", resultWithFavorite)
+                                                            }
+                                                        })
+                                                    }
+
+                                                } else {
+                                                    callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                                }
                                             })
 
                                         })

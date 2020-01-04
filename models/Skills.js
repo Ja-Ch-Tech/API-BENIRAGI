@@ -60,3 +60,43 @@ module.exports.smallSearch = (objet, callback) => {
         callback(false, "Une exception a été lévée lors de la recherche du skills : " + exception)
     }
 }
+
+//Recupère le nom du skills
+module.exports.getSkillsName = (objet, callback) => {
+    try {
+        if (objet.jobs && objet.jobs.skills.length > 0) {
+            var outSkills = 0,
+                listOut = [];
+
+            
+        } else {
+            callback(false, "Aucun skills n'a été trouvé")
+        }
+    } catch (exception) {
+        
+    }
+}
+
+module.exports.findOne = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la recherche du skills : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(true, "Le skills est renvoyé", resultAggr[0])
+                } else {
+                    callback(false, "Le skills n'est pas trouvé")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la recherche du skills : " +exception)
+    }
+}
