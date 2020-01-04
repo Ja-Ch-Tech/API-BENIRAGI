@@ -13,7 +13,7 @@ var db = require("./models/db");
 
 //mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
-var string_con = 'mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority';
+var string_con = 'mongodb://localhost/Beniragi';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 
@@ -34,6 +34,7 @@ var offerRouter = require('./routes/Offer');
 var evaluationRouter = require('./routes/Evaluation');
 var townRouter = require('./routes/Town');
 var viewRouter = require('./routes/View');
+var favorisRouter = require('./routes/Favoris');
 
 //For admin
 var jobsAdminRouter = require("./routes/admin/Jobs");
@@ -66,6 +67,7 @@ app.use('/offer', offerRouter);
 app.use('/evaluation', evaluationRouter);
 app.use('/town', townRouter);
 app.use('/view', viewRouter);
+app.use('/favoris', favorisRouter);
 
 //For admin
 app.use('/admin/jobs', jobsAdminRouter);

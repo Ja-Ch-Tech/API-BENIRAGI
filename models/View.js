@@ -110,7 +110,7 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                     {
                         "$group": {
                             "_id": "$month",
-                            "nbreVisite": {"$sum": 1},
+                            "nbreVisite": { "$sum": 1 },
                             "created_at": {
                                 "$push": {
                                     "created_at": "$created_at"
@@ -119,7 +119,7 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                         }
                     },
                     {
-                        "$sort": {"created_at.created_at": -1}
+                        "$sort": { "created_at.created_at": -1 }
                     },
                     {
                         "$limit": 6
@@ -133,18 +133,16 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                                 listOut = [];
 
                             var sixNextMonth = getSixNextMonth();
-                            console.log(sixNextMonth);
-                            
 
                             for (let index = 0; index < sixNextMonth.length; index++) {
 
                                 var item = getItem(resultAggr, sixNextMonth[index]);
-                                
+
                                 if (~sixNextMonth.indexOf(item) || !item) {
                                     var month = getMonth(sixNextMonth[index]);
                                     listOut.push({ month: month, nbreVisite: 0 })
                                 } else {
-                                    var month = getMonth(sixNextMonth[index]); 
+                                    var month = getMonth(sixNextMonth[index]);
                                     listOut.push({ month: month, nbreVisite: item.nbreVisite })
                                 }
 
@@ -154,10 +152,26 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
                                     callback(true, "Le graphe a été renvoyé", listOut)
                                 }
                             }
-                            
+
 
                         } else {
-                            callback(false, "Aucune vue, donc aucun grapphe")
+                            
+                            var sixNextMonth = getSixNextMonth(),
+                                outGraph = 0,
+                                listOut = [];
+
+                            for (let index = 0; index < sixNextMonth.length; index++) {
+
+                                outGraph++;
+
+                                var month = getMonth(sixNextMonth[index]);
+
+                                listOut.push({ month: month, nbreVisite: 0 })
+
+                                if (outGraph == sixNextMonth.length) {
+                                    callback(true, "Le graphe a été renvoyé", listOut)
+                                }
+                            }
                         }
                     }
                 })
@@ -176,9 +190,9 @@ module.exports.graphForVisitProfileFreelancer = (id_freelancer, callback) => {
  * @param {Number} id L'id en question
  */
 function getItem(tableau, id) {
-    const item = tableau.find(item => item._id === id);
-
-    return item;
+    const itemOut = tableau.find(item => parseInt(new Date(item.created_at[0].created_at).getMonth()) + 1 === id);
+    
+    return itemOut;
 }
 
 /**
