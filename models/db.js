@@ -4,7 +4,7 @@ var state = {
     db: null
 }
 
-
+//Connexion à la base de données
 module.exports.connect = (url, callback) => {
 
     if (state.db) {
@@ -18,7 +18,7 @@ module.exports.connect = (url, callback) => {
                 } else {
 
                     state.db = client.db("Beniragi");
-                    callback(true, "connexion établie avec la base de données de BENIRAGI...")
+                    callback(true, ">>> Connexion établie avec la base de données de BENIRAGI...")
                 }
             })
         } else {
@@ -27,6 +27,7 @@ module.exports.connect = (url, callback) => {
     }
 }
 
+//Récupération de la base de données courant
 module.exports.get = () => {
     return state.db;
 }
