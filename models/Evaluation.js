@@ -289,7 +289,7 @@ module.exports.getStatsForEmployer = (id, callback) => {
 }
 
 //Module de récupération de top freelancer
-module.exports.getTop = (limit, callback) => {
+module.exports.getTop = (id_viewer, limit, callback) => {
     try {
         var limitLess = limit && parseInt(limit) ? {"$limit": parseInt(limit)} : {"$match": {}};
 
@@ -319,6 +319,7 @@ module.exports.getTop = (limit, callback) => {
                         listOut = [];
 
                     for (let index = 0; index < resultAggr.length; index++) {
+                        resultAggr[index].id_viewer = id_viewer;
                         users.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
                             outTopFreelance++;
                             if (isGet) {

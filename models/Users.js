@@ -639,16 +639,24 @@ module.exports.getInfos = (objet, callback) => {
 
                                 town.initialize(db);
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
+                                    resultWithTown.id_viewer = objet.id_viewer ? objet.id_viewer : null;
+                                    
+                                    var favoris = require("./Favoris");
 
-                                    var view = require("./View"),
-                                        entity = require("./entities/View").View("" + resultWithTown._id, objet.id_viewer ? objet.id_viewer : null);
+                                    favoris.initialize(db);
+                                    favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
+                                        
+                                        var view = require("./View"),
+                                            entity = require("./entities/View").View("" + resultWithFavorite._id, resultWithFavorite.id_viewer ? resultWithFavorite.id_viewer : null);
 
-                                    view.initialize(db);
-                                    view.create(entity, (isCreated, message, result) => {
-                                        //Suppression de datas en trop
-                                        delete resultWithTown._id;
-                                        delete resultWithTown.password;
-                                        callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+                                        view.initialize(db);
+                                        view.create(entity, (isCreated, message, result) => {
+                                            //Suppression de datas en trop
+                                            delete resultWithFavorite._id;
+                                            delete resultWithFavorite.password;
+                                            
+                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+                                        })
                                     })
 
                                 })
@@ -918,6 +926,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                     } else {
                         if (resultAggr.length > 0) {
                             resultAggr[0].average = objet.average;
+                            resultAggr[0].id_viewer = objet.id_viewer;
                             delete resultAggr[0].created_at;
 
                             var type_users = require("./TypeUsers");
@@ -934,10 +943,15 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                                         town.initialize(db);
                                         town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
 
-                                            //Suppression de datas en trop
-                                            delete resultWithTown.password;
+                                            var favoris = require("./Favoris");
 
-                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithTown)
+                                            favoris.initialize(db);
+                                            favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
+                                                //Suppression de datas en trop
+                                                delete resultWithTown.password;
+
+                                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                            })
 
                                         })
                                     })

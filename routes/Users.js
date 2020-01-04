@@ -212,12 +212,13 @@ router.get('/stats/:id_freelancer', (req, res) => {
 })
 
 //Récupère les tops freelancer
-router.get('/topFreelance/:limit', (req, res) => {
+router.get('/topFreelance/:id_viewer/:limit', (req, res) => {
     var objetRetour = require("./ObjetRetour").ObjetRetour(),
-        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null;
+        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null,
+        id_viewer = req.params.id_viewer && req.params.id_viewer != "null" ? req.params.id_viewer : null;
     
     modelEvaluation.initialize(db);
-    modelEvaluation.getTop(limit, (isGet, message, result) => {
+    modelEvaluation.getTop(id_viewer, limit, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

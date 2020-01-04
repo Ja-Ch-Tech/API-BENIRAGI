@@ -79,3 +79,48 @@ module.exports.set = (newFavoris, callback) => {
         
     }
 }
+
+//Détermine si oui ou non le freelancer est dans le favoris de l'employeur actuellement connecté
+module.exports.isThisInFavorite = (objet, callback) => {
+    try {
+        if (objet.id_viewer && objet.id_viewer != null) {
+            var users = require("./Users");
+
+            users.initialize(db);
+            users.isEmployer(objet.id_viewer, (isTrue, message, resultTest) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "id_employer": objet.id_viewer,
+                                "id_freelancer": "" + objet._id
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            objet.isThisInFavorite = false;
+                            callback(false, "Une erreur lors de la récupération du favoris : " + err, objet)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                objet.isThisInFavorite = true;
+                                callback(false, "Est pas dans ces favoris", objet)
+                            } else {
+                                objet.isThisInFavorite = false;
+                                callback(false, "N'est pas dans ces favoris", objet)
+                            }
+                        }
+                    })
+                } else {
+                    objet.isThisInFavorite = false;
+                    callback(false, "N'est pas dans ces favoris", objet)
+                }
+            })
+        } else {
+            objet.isThisInFavorite = false;
+            callback(false, "N'est pas dans ces favoris", objet)
+        }
+        
+    } catch (exception) {
+        
+    }
+}
