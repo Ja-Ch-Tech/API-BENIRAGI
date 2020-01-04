@@ -247,4 +247,18 @@ router.get('/getFreelancers/:moment/:limit', (req, res) => {
     })
 })
 
+//Module de récupération de favoris de l'employeur
+router.get('/getFavorites/:id_employer', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.initialize(db);
+    model.favorisForEmployer(req.params.id_employer, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

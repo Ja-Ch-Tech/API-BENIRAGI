@@ -121,6 +121,53 @@ module.exports.isThisInFavorite = (objet, callback) => {
         }
         
     } catch (exception) {
-        
+        callback(false, "Une exception a été lévée lors de la détermination des favoris : " +err)
+    }
+}
+
+module.exports.favorisForEmployer = (id_employer, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_employer": id_employer,
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération des favoris d'un employeur : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var users = require("./Users"),
+                        outUsers = 0,
+                        listOut = [];
+
+                    users.initialize(db);
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        resultAggr[index]._id = resultAggr[index].id_freelancer;
+                        resultAggr[index].id_viewer = resultAggr[index].id_employer;
+
+                        users.getInfosForFreelancerWithAllData(resultAggr[index], (isGet, message, resultWithInfos) => {
+                            outUsers++;
+                            if (isGet) {
+                                delete resultWithInfos.feedBacks;
+                                listOut.push(resultWithInfos)
+                            }
+
+                            if (outUsers == resultAggr.length) {
+                                callback(true, "Les freelancers en favoris sont renvoyé", listOut)
+                            }
+                        })    
+                    }
+
+                } else {
+                    callback(false, "Aucun favoris")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des favoris d'un employeur : " + exception)
     }
 }

@@ -1031,3 +1031,39 @@ module.exports.getFreelancers = (limit, moment, callback) => {
         callback(false, "Une exception a été lévée lors de la recherche des nouveaux users : " + exception)
     }
 }
+
+//Module pour la récupération des favoris d'un employeur
+module.exports.favorisForEmployer = (id_employer, callback) => {
+    try {
+        this.isEmployer(id_employer, (isTrue, message, resultTest) => {
+            if (isTrue) {
+                var favoris = require("./Favoris");
+
+                favoris.initialize(db);
+                favoris.favorisForEmployer(id_employer, (isGet, message, result) => {
+                    callback(isGet, message, result)
+                })
+            } else {
+                callback(false, "Un freelancer ne peut pas avoir des favoris")
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des favoris d'un employeur : " +exception)
+    }
+}
+
+//Module pour récupérer toutes les datas des freelancers
+module.exports.getInfosForFreelancerWithAllData = (objet, callback) => {
+    try {
+        var evaluation = require("./Evaluation");
+
+        evaluation.initialize(db);
+        evaluation.getAverageNote(objet, (isGet, message, result) => {
+            this.getInfosForFreelancer(result, (isGet, message, resultWithInfos) => {
+                callback(isGet, message, resultWithInfos)
+            })
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du rassemblage de toutes les datas : " +exception)
+    }
+}
