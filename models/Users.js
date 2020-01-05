@@ -517,6 +517,42 @@ module.exports.setJobs = (newJobs, callback) => {
     }
 }
 
+//Définition de l'identité de la personne
+module.exports.setBiographie = (newBio, callback) => {
+    try {
+        this.findOneById(newBio.id_user, (isFound, message, result) => {
+            if (isFound) {
+                delete newBio.id_user;
+                var filter = {
+                    "_id": result._id
+                },
+                    update = {
+                        "$set": {
+                            "bio": newBio
+                        }
+                    };
+
+                collection.value.updateOne(filter, update, (err, resultUp) => {
+                    if (err) {
+                        callback(false, "Une erreur lors de la mise à jour : " + err)
+                    } else {
+                        if (resultUp) {
+                            callback(true, "La mise à jour a été faites", resultUp)
+                        } else {
+                            callback(false, "Aucune mise à jour")
+                        }
+                    }
+                })
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jour : " + exception)
+    }
+}
+
 //Définition de l'avatar
 module.exports.setAvatar = (newAvatar, callback) => {
     try {
@@ -640,23 +676,55 @@ module.exports.getInfos = (objet, callback) => {
                                 town.initialize(db);
                                 town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
                                     resultWithTown.id_viewer = objet.id_viewer ? objet.id_viewer : null;
-                                    
+
                                     var favoris = require("./Favoris");
 
                                     favoris.initialize(db);
                                     favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
-                                        
-                                        var view = require("./View"),
-                                            entity = require("./entities/View").View("" + resultWithFavorite._id, resultWithFavorite.id_viewer ? resultWithFavorite.id_viewer : null);
+                                        if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills.length > 0) {
+                                            resultWithFavorite.skills = [];
+                                            var outSkills = 0,
+                                                listOut = [],
+                                                skills = require("./Skills");
 
-                                        view.initialize(db);
-                                        view.create(entity, (isCreated, message, result) => {
-                                            //Suppression de datas en trop
-                                            delete resultWithFavorite._id;
-                                            delete resultWithFavorite.password;
-                                            
-                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
-                                        })
+                                            skills.initialize(db);
+                                            for (let index = 0; index < resultWithFavorite.jobs.skills.length; index++) {
+                                                skills.findOne(resultWithFavorite.jobs.skills[index], (isGet, message, resultWithSkills) => {
+                                                    outSkills++;
+                                                    if (isGet) {
+                                                        resultWithFavorite.skills.push(resultWithSkills.name)
+                                                    }
+
+                                                    if (outSkills == resultWithFavorite.jobs.skills.length) {
+                                                        var view = require("./View"),
+                                                            entity = require("./entities/View").View("" + resultWithFavorite._id, resultWithFavorite.id_viewer ? resultWithFavorite.id_viewer : null);
+
+                                                        view.initialize(db);
+                                                        view.create(entity, (isCreated, message, result) => {
+                                                            //Suppression de datas en trop
+                                                            delete resultWithFavorite._id;
+                                                            delete resultWithFavorite.password;
+
+                                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+                                                        })
+                                                    }
+                                                })
+                                            }
+
+                                        } else {
+                                            var view = require("./View"),
+                                                entity = require("./entities/View").View("" + resultWithFavorite._id, resultWithFavorite.id_viewer ? resultWithFavorite.id_viewer : null);
+
+                                            view.initialize(db);
+                                            view.create(entity, (isCreated, message, result) => {
+                                                //Suppression de datas en trop
+                                                delete resultWithFavorite._id;
+                                                delete resultWithFavorite.password;
+
+                                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+                                            })
+                                        }
+                                        /**/
                                     })
 
                                 })
@@ -807,10 +875,12 @@ module.exports.setTown = (newTown, callback) => {
                             "_id": result._id
                         },
                             update = {
-                                "id_town": newTown.id_town
+                                "$set": {
+                                    "id_town": newTown.id_town
+                                }
                             };
 
-                        collection.value(filter, update, (err, resultUp) => {
+                        collection.value.updateOne(filter, update, (err, resultUp) => {
                             if (err) {
                                 callback(false, "Une erreur est survenue lors de la définition de la ville : " + err)
                             } else {
@@ -1007,7 +1077,7 @@ module.exports.getFreelancers = (limit, moment, callback) => {
         type_users.currentlyIdForFreelanceType((isGet, message, resultWithID) => {
             if (isGet) {
                 var limitLess = limit && parseInt(limit) ? { "$limit": parseInt(limit) } : { "$match": {} },
-                    sort = /new/i.test(moment) ? {"created_at": -1 } : {"created_at": 1};
+                    sort = /new/i.test(moment) ? { "created_at": -1 } : { "created_at": 1 };
                 collection.value.aggregate([
                     {
                         "$match": {
@@ -1070,7 +1140,7 @@ module.exports.favorisForEmployer = (id_employer, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de la récupération des favoris d'un employeur : " +exception)
+        callback(false, "Une exception a été lévée lors de la récupération des favoris d'un employeur : " + exception)
     }
 }
 
@@ -1086,6 +1156,42 @@ module.exports.getInfosForFreelancerWithAllData = (objet, callback) => {
             })
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors du rassemblage de toutes les datas : " +exception)
+        callback(false, "Une exception a été lévée lors du rassemblage de toutes les datas : " + exception)
+    }
+}
+
+//Définition de le taux horaire du freelancer
+module.exports.setHourlyRate = (newHourly, callback) => {
+    try {
+        this.findOneById(newHourly.id_user, (isFound, message, result) => {
+            if (isFound) {
+                delete newHourly.id_user;
+                var filter = {
+                    "_id": result._id
+                },
+                    update = {
+                        "$set": {
+                            "hourly": newHourly
+                        }
+                    };
+
+                collection.value.updateOne(filter, update, (err, resultUp) => {
+                    if (err) {
+                        callback(false, "Une erreur lors de la mise à jour : " + err)
+                    } else {
+                        if (resultUp) {
+                            callback(true, "La mise à jour a été faites", resultUp)
+                        } else {
+                            callback(false, "Aucune mise à jour")
+                        }
+                    }
+                })
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jour : " + exception)
     }
 }

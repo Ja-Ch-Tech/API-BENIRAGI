@@ -27,6 +27,13 @@ module.exports.Job = function Job(id_user) {
     }
 }
 
+module.exports.Bio = function Bio(id_user) {
+    return {
+        id_user: id_user,
+        bio: String
+    }
+}
+
 module.exports.Avatar = function Avatar(id_user) {
     return {
         id_user: id_user,
@@ -59,5 +66,12 @@ module.exports.Attachment = function Attachment(id_user) {
     return {
         id_user: id_user,
         attachment: String
+    }
+}
+
+module.exports.HourlyRate = function HourlyRate(id_user) {
+    return {
+        id_user: id_user,
+        rate: String
     }
 }

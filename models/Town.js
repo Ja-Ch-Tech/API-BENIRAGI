@@ -104,7 +104,7 @@ module.exports.findOneById = (id, callback) => {
                 callback(false, "Une erreur de recherche de la ville : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(true, message, resultAggr[0])
+                    callback(true, "Ville renvoyé", resultAggr[0])
                 } else {
                     callback(false, "Cette ville n'existe pas ou n'est pas autorisé")
                 }

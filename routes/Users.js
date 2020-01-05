@@ -112,6 +112,23 @@ router.post('/setJob', (req, res) => {
     })
 })
 
+//Définir la biographie d'un utilisateur
+router.post('/setBio', (req, res) => {
+    var entity = require("../models/entities/Users").Bio(req.body.id_user),
+        objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    entity.bio = req.body.bio;
+
+    model.initialize(db);
+    model.setBiographie(entity, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 //Pour récupérer les détails d'un utilisateur
 router.get('/details/:id_user/:id_viewer', (req, res) => {
     var objetRetour = require("./ObjetRetour").ObjetRetour(),
@@ -254,6 +271,23 @@ router.get('/getFavorites/:id_employer', (req, res) => {
     model.initialize(db);
     model.favorisForEmployer(req.params.id_employer, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Définir la biographie d'un utilisateur
+router.post('/setHourly', (req, res) => {
+    var entity = require("../models/entities/Users").HourlyRate(req.body.id_user),
+        objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    entity.rate = req.body.rate;
+
+    model.initialize(db);
+    model.setHourlyRate(entity, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 
