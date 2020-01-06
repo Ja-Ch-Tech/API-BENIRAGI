@@ -272,7 +272,7 @@ module.exports.getStatsForEmployer = (id, callback) => {
 
                 } else {
                     objet.nbreFeedBack = 0;
-                    objet.id_employer = resultAggr[0]._id;
+                    objet.id_employer = id;
                     
                     var offer = require("./Offer");
 

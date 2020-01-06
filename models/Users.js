@@ -123,11 +123,11 @@ function sendCode(account, callback) {
 <body>
     <table  width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 20pt;">
         <tr>
-            <td rowspan="8" width="25%">&nbsp;</td>
+            <td rowspan="8" width="5%">&nbsp;</td>
             <td style="text-align: center;">
                 <div style="font-family: Segoe UI; font-size: 16pt; padding-top: 10pt;">BENIRAGI-SERVICE, All in one</div>
             </td>
-            <td rowspan="8" width="25%">&nbsp;</td>
+            <td rowspan="8" width="5%">&nbsp;</td>
         </tr>
         <tr>
             <td style="text-align: center; padding-top: 20pt; padding-bottom: 20pt;">
