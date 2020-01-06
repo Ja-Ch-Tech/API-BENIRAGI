@@ -29,6 +29,7 @@ var evaluationRouter = require('./routes/Evaluation');
 var townRouter = require('./routes/Town');
 var viewRouter = require('./routes/View');
 var favorisRouter = require('./routes/Favoris');
+var skillsRouter = require('./routes/Skills');
 
 //For admin
 var jobsAdminRouter = require("./routes/admin/Jobs");
@@ -62,6 +63,7 @@ app.use('/evaluation', evaluationRouter);
 app.use('/town', townRouter);
 app.use('/view', viewRouter);
 app.use('/favoris', favorisRouter);
+app.use('/skills', skillsRouter);
 
 //For admin
 app.use('/admin/jobs', jobsAdminRouter);

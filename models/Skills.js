@@ -61,22 +61,6 @@ module.exports.smallSearch = (objet, callback) => {
     }
 }
 
-//Recupère le nom du skills
-module.exports.getSkillsName = (objet, callback) => {
-    try {
-        if (objet.jobs && objet.jobs.skills.length > 0) {
-            var outSkills = 0,
-                listOut = [];
-
-            
-        } else {
-            callback(false, "Aucun skills n'a été trouvé")
-        }
-    } catch (exception) {
-        
-    }
-}
-
 module.exports.findOne = (id, callback) => {
     try {
         collection.value.aggregate([
@@ -98,5 +82,45 @@ module.exports.findOne = (id, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la recherche du skills : " +exception)
+    }
+}
+
+//Recherche d'auto-completion
+module.exports.autoComplete = (objet, callback) => {
+    try {
+        var users = require("./Users");
+
+		users.initialize(db);
+        users.isEmployer(objet.id_freelancer, (isTrue, message, result) => {
+            if (!isTrue) {
+                if (result.jobs.id_job) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+								"id_job": result.jobs.id_job,
+                                "name": { "$regex": new RegExp(objet.name, "i") }
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la recherche d'autocompletion : " + err)
+                        } else {
+                            if (resultAggr.length > 0) {
+								callback(true, "L'autocompletion fini", resultAggr)
+							} else {
+								callback(false, "Si vous valider cela ça aura pour effet l'ajout de ce skills dans votre metier ")
+							}
+                        }
+                    })
+                } else {
+                    callback(false, "Veuillez d'abord définir un job")
+                }
+                
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+		callback(false, "Une exception a été lévée lors de la recherche d'autocompletion : " + exception)
     }
 }
