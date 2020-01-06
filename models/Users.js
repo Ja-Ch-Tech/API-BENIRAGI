@@ -41,24 +41,29 @@ module.exports.register = (newUser, callback) => {
 
                                         //On vérifie s'il y a des résultat renvoyé
                                         if (result) {
-                                            //callback(true, "L'utilisateur est enregistré", result.ops[0])
-                                            var code = require("./Code");
+                                            var type_users = require("./TypeUsers");
 
-                                            code.initialize(db);
-                                            code.generate(result.ops[0], (isGenerate, message, resultWithCode) => {
-                                                if (isGenerate) {
-                                                    sendCode(resultWithCode, (isSend, message, resultSend) => {
-                                                        if (isSend) {
-                                                            callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
-                                                        } else {
-                                                            callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
-                                                        }
-                                                    })
-                                                } else {
-                                                    callback(true, "Demandé un nouveau code", result.ops[0])
-                                                }
+                                            type_users.initialize(db)
+                                            type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+                                                
+                                                var code = require("./Code");
+
+                                                code.initialize(db);
+                                                code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
+                                                    if (isGenerate) {
+                                                        sendCode(resultWithCode, (isSend, message, resultSend) => {
+                                                            if (isSend) {
+                                                                callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                            } else {
+                                                                callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                            }
+                                                        })
+                                                    } else {
+                                                        callback(true, "Demandé un nouveau code", resultWithTest)
+                                                    }
+                                                })
                                             })
-
+                                            
                                         } else { //Si non l'etat sera false et on envoi un message
                                             callback(false, "Désolé, l'utilisateur non enregistrer")
                                         }
