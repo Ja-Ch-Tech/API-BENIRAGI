@@ -92,7 +92,7 @@ module.exports.testOfferExist = (id_employer, id_freelancer, callback) => {
     ]).toArray((err, resultAggr) => {
         if (err) {
             callback(false, "Une erreur lors du test de l'offre : " + err)
-        } else {
+        } else {    
             if (resultAggr.length == 0) {
                 callback(true, "Permission d'en créer un nouveau")
             } else {

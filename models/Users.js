@@ -681,7 +681,7 @@ module.exports.getInfos = (objet, callback) => {
 
                                     favoris.initialize(db);
                                     favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
-                                        if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills.length > 0) {
+                                        if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
                                             resultWithFavorite.skills = [];
                                             var outSkills = 0,
                                                 listOut = [],
@@ -1020,7 +1020,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                                                 //Suppression de datas en trop
                                                 delete resultWithTown.password;
 
-                                                if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills.length > 0) {
+                                                if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
                                                     resultWithFavorite.skills = [];
                                                     var outSkills = 0,
                                                         listOut = [],

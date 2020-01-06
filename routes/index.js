@@ -6,8 +6,8 @@ var multerS3 = require('multer-s3');
 var db = require("../models/db");
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+router.get('/', function (req, res, next) {
+    res.render('index', { title: 'Express' });
 });
 
 
@@ -49,23 +49,27 @@ router.post('/file-upload', (req, res) => {
 
     singleUpload(req, res, (err) => {
 
-        var model = require("../models/Media"),
-            entity = require("../models/entities/Media").Media(),
-            objetRetour = require("./ObjetRetour").ObjetRetour();
+        if (!err) {
+            var model = require("../models/Media"),
+                entity = require("../models/entities/Media").Media(),
+                objetRetour = require("./ObjetRetour").ObjetRetour();
 
-        entity.path = req.file.location;
-        entity.size = req.file.size;
-        entity.for = req.body.for.toLowerCase();
+            entity.path = req.file.location;
+            entity.size = req.file.size;
+            entity.for = req.body.for.toLowerCase();
 
-        model.initialize(db);
-        model.create(entity, (isCreated, message, result) => {
-            objetRetour.getEtat = isCreated;
-            objetRetour.getMessage = message;
-            objetRetour.getObjet = result;
+            model.initialize(db);
+            model.create(entity, (isCreated, message, result) => {
+                objetRetour.getEtat = isCreated;
+                objetRetour.getMessage = message;
+                objetRetour.getObjet = result;
 
-            res.status(200).send(objetRetour);
-        })
-            
+                res.status(200).send(objetRetour);
+            })
+        } else {
+            res.status(202).send({getEtat: false, getMessage: "Upload was not finished !"})
+        }
+
     })
 })
 

@@ -121,7 +121,7 @@ module.exports.isThisInFavorite = (objet, callback) => {
         }
         
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de la détermination des favoris : " +err)
+        callback(false, "Une exception a été lévée lors de la détermination des favoris : " +exception)
     }
 }
 
