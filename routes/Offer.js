@@ -74,4 +74,18 @@ router.get('/getMessages/:id_user', (req, res) => {
     })
 })
 
+//Route permettant des récupérer les freelancers qui sont parmi mes offres
+router.get('/getFreelancersForOffer/:id_employer', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.initialize(db);
+    model.gets(req.params.id_employer, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour)
+    })
+})
+
 module.exports = router;

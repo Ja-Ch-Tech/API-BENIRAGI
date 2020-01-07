@@ -360,7 +360,6 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
     }
 }
 
-//En continue
 module.exports.getCountForEmployer = (objet, callback) => {
     try {
         collection.value.aggregate([
@@ -401,5 +400,66 @@ module.exports.getCountForEmployer = (objet, callback) => {
         })
     } catch (exception) {
         
+    }
+}
+
+//Récupération des offres envoyés
+module.exports.gets = (id_employer, callback) => {
+    try {
+        var users = require("./Users");
+
+        users.initialize(db);
+        users.isEmployer(id_employer, (isTrue, message, resultTest) => {
+            if (isTrue) {
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "id_employer": id_employer
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": "$id_freelancer",
+                            "nbreOffer": {"$sum": 1}
+                        }
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la récupération des offres : " +err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var outFreelancer = 0,
+                                listOut = [],
+                                users = require("./Users");
+
+                            users.initialize(db);
+                            for (let index = 0; index < resultAggr.length; index++) {
+                                users.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithDetails) => {
+                                    outFreelancer++;
+                                    if (isGet) {
+                                        delete resultWithDetails.feedBacks;
+                                        
+                                        listOut.push({
+                                            infos: resultWithDetails,
+                                            nbreOffer: resultAggr[index].nbreOffer
+                                        })
+                                    }
+
+                                    if (outFreelancer == resultAggr.length) {
+                                        callback(true, "Les freelancers dont vous avez fait affaires", listOut)
+                                    }
+                                })
+                            }
+                        } else {
+                            callback(false, "Aucune n'offre n'a été passé")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des offres : " + exception)
     }
 }
