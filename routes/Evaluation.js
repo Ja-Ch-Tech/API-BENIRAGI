@@ -24,4 +24,21 @@ router.post('/', (req, res) => {
     })
 })
 
+//Récupération des feedbacks qu'un freelancer a réçu
+router.get('/getFeedBacks/:id_freelancer', (req, res) =>  {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            "_id": req.params.id_freelancer
+        };
+
+    model.initialize(db);
+    model.getFeedBacks(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;
