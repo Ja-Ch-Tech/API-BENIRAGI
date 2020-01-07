@@ -125,6 +125,7 @@ module.exports.isThisInFavorite = (objet, callback) => {
     }
 }
 
+//Module de récupération de tous les favoris d'un employeur
 module.exports.favorisForEmployer = (id_employer, callback) => {
     try {
         collection.value.aggregate([
@@ -169,5 +170,35 @@ module.exports.favorisForEmployer = (id_employer, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des favoris d'un employeur : " + exception)
+    }
+}
+
+module.exports.countFavorite = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_employer": objet.id_employer,
+                    "flag": true
+                }
+            },
+            {
+                "$count": "nbreFavoris"
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du comptage des favoris : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.nbreFavoris = resultAggr[0].nbreFavoris;
+                    callback(true, "Les favoris sont comptés", objet)
+                } else {
+                    objet.nbreFavoris = 0;
+                    callback(false, "Aucun favoris", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du comptage des favoris : " + exception)
     }
 }

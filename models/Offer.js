@@ -379,15 +379,23 @@ module.exports.getCountForEmployer = (objet, callback) => {
             if (err) {
                 callback(false, "Une erreur est survenue lors du comptage des évaluation : " + err)
             } else {
+                var favoris = require("./Favoris");
+
+                favoris.initialize(db);
 
                 if (resultAggr.length > 0) {
                     objet.nbreOffer = resultAggr[0].nbreOffer;
 
-                    callback(true, "Le stats pour lui", objet);
+                    favoris.countFavorite(objet, (isCount, message, resultWithFavorite) => {
+                        callback(true, "Le stats pour lui", resultWithFavorite);
+                    })
 
                 } else {
                     objet.nbreOffer = 0;
-                    callback(false, "Le stats pour lui", objet);
+                    
+                    favoris.countFavorite(objet, (isCount, message, resultWithFavorite) => {
+                        callback(false, message, resultWithFavorite);
+                    })
                 }
             }
         })

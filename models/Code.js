@@ -36,7 +36,7 @@ module.exports.generate = function (user, callback) {
     }
 }
 
-
+//Module pour l'activation du compte
 module.exports.activateAccount = (obj, callback) => {
     try {
         collection.value.aggregate([
