@@ -267,7 +267,8 @@ module.exports.sendingMessage = (newMessage, callback) => {
                                         entitySendMessage = require("./entities/Notification").SendMessage();
 
                                     entitySendMessage.id_offer = "" + result._id;
-                                    entitySendMessage.id_freelancer = result.id_freelancer;
+                                    entitySendMessage.id_receiver = result.id_freelancer == newMessage.id_sender ? result.id_employer : result.id_freelancer;
+                                    entitySendMessage.id_sender = newMessage.id_sender;
 
                                     notification.initialize(db);
                                     notification.sendNotificationMessage(entitySendMessage, (isSend, message, result) => {
@@ -306,9 +307,13 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                 }
             },
             {
-                "$project": {
-                    "_id": 1,
-                    "messages": 1
+                "$group": {
+                    "_id": "$_id",
+                    "messages": {
+                        "$push": {
+                            "messages": "$messages"
+                        }
+                    }
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -324,31 +329,33 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
 
                     for (let index = 0; index < resultAggr.length; index++) {
 
-                        var outMessage = 0,
-                            listOutMessage = [];
+                        this.getEntrants(resultAggr[index]._id, (isGet, message, resultWithEntrant) => {
+                            if (isGet) {
+                                resultAggr[index].entrants = resultWithEntrant;
+                            }
 
-                        for (let indexMessage = 0; indexMessage < resultAggr[index].messages.length; indexMessage++) {
+                            for (let indexMessage = 0; indexMessage < resultAggr[index].messages[0].messages.length; indexMessage++) {
 
-                            resultAggr[index].messages[indexMessage].id_user = resultAggr[index].messages[indexMessage].id_sender;
+                                resultAggr[index].messages[0].messages[indexMessage].id_user = resultAggr[index].messages[0].messages[indexMessage].id_sender;
 
-                            user.getInfos(resultAggr[index].messages[indexMessage], (isGet, message, result) => {
-                                outOffer++;
-                                if (isGet) {
-                                    delete resultAggr[index].messages[indexMessage].id_sender;
+                                user.getInfos(resultAggr[index].messages[0].messages[indexMessage], (isGet, message, result) => {
+                                    outOffer++;
+                                    if (isGet) {
+                                        delete resultAggr[index].messages[0].messages[indexMessage].id_sender;
 
-                                    resultAggr[index].messages[indexMessage].infos_sender = result;
+                                        resultAggr[index].messages[0].messages[indexMessage].infos_sender = result;
+                                        
+                                        listOut.push(resultAggr[index]);
+                                    }
 
-                                    listOut.push(resultAggr[index]);
-                                }
+                                    if (outOffer == resultAggr.length) {
+                                        callback(true, "Les messages sont renvoyé", listOut)
+                                    }
 
-                                outMessage++;
-
-                                if (outOffer == resultAggr.length) {
-                                    callback(true, "Les messages sont renvoyé", listOut)
-                                }
-
-                            })
-                        }
+                                })
+                            }
+                        })
+                        
                     }
                 } else {
                     callback(false, "Aucun message n'a été repertorié")
@@ -438,7 +445,7 @@ module.exports.gets = (id_employer, callback) => {
                                     outFreelancer++;
                                     if (isGet) {
                                         delete resultWithDetails.feedBacks;
-                                        
+
                                         listOut.push({
                                             infos: resultWithDetails,
                                             nbreOffer: resultAggr[index].nbreOffer
@@ -461,5 +468,121 @@ module.exports.gets = (id_employer, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des offres : " + exception)
+    }
+}
+
+//Récupération des messages
+module.exports.getMessage = (props, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(props._id.id_offer)
+                }
+            },
+            {
+                "$unwind": "$messages"
+            },
+            {
+                "$match": {
+                    "messages.id_sender": props._id.id_sender
+                }
+            },
+            {
+                "$sort": {"messages.send_at": -1}
+            },
+            { "$limit": 1}
+
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération des messages  pour la notification : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var users = require("./Users"),
+                        objet = {
+                            id_user: resultAggr[0].messages.id_sender,
+                            id_viewer: resultAggr[0].messages.id_sender
+                        };
+
+                    users.initialize(db);
+                    users.getInfos(objet, (isGet, message, resultWithInfo) => {
+                        if (isGet) {
+                            resultWithInfo.message = resultAggr[0].messages.message;
+                            callback(true, "Le message est renvoyé avec ces infos", resultWithInfo);
+
+                        } else {
+                            callback(false, message)
+                        }
+                        
+                    })
+
+                } else {
+                    callback(false, "Aucun message n'y correspond")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des messages  pour la notification : " + exception)
+    }
+}
+
+module.exports.getEntrants = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": id
+                }
+            },
+            {
+                "$project": {
+                    "id_employer": 1,
+                    "id_freelancer": 1
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération des participants à l'offre : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    //callback(true, "les participant sont récupérer", resultAggr[0])
+                    var users = require("./Users"),
+                        objetRetour = {};
+
+                    users.initialize(db);
+                    var employer = {
+                        "id_user": resultAggr[0].id_employer,
+                        "id_viewer": resultAggr[0].id_employer
+                    };
+
+                    users.getInfos(employer, (isGet, message, resultWithInfosEmployer) => {
+                        if (isGet) {
+                            objetRetour.employer = resultWithInfosEmployer;
+                            
+                            var freelancer = {
+                                "id_user": resultAggr[0].id_freelancer,
+                                "id_viewer": resultAggr[0].id_freelancer
+                            };
+
+                            users.getInfos(freelancer, (isGet, message, resultWithInfosFreelancer) => {
+                                if (isGet) {
+                                    objetRetour.freelancer = resultWithInfosFreelancer;
+
+                                    callback(true, "Les participants sont renvoyé", objetRetour);
+                                } else {
+                                    callback(false, "Il faut deux participant")
+                                }
+                            })
+                        } else {
+                            callback(false, "Il faut deux participant")
+                        }
+                    })
+                } else {
+                    callback(false, "Aucun participant")
+                }
+            }
+        })
+    } catch (exception) {
+
     }
 }

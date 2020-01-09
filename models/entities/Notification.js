@@ -11,7 +11,8 @@ module.exports.SendOffer = function SendOffer() {
 module.exports.SendMessage = function SendMessage() {
     return {
         id_offer: String,
-        id_freelancer: String,
+        id_sender: String,
+        id_receiver: String,
         flag: false,
         type: "Send Message",
         created_at: new Date()

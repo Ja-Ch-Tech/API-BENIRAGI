@@ -129,3 +129,70 @@ module.exports.sendNotificationMessage = (newMessage, callback) => {
         callback(false, "Une exception a été lévée lors de la sauvegarde de la notification du message : " + exception)
     }
 }
+
+//Les notifications de message pour un freelancer
+module.exports.getNewMessageNotRead = (id_user, limit, callback) => {
+    try {
+        var limit = limit && parseInt(limit) ? { "$limit": parseInt(limit) } : { "$match": {} };
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_receiver": id_user,
+                    "flag": false,
+                    "type": new RegExp("send message", "i")
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "id_receiver": "$id_receiver",
+                        "id_sender": "$id_sender",
+                        "id_offer": "$id_offer"
+                    },
+                    "data": {
+                        "$push": {
+                            "created_at": "$created_at"
+                        }
+                    },
+                    "nbreMessage": {"$sum": 1}
+                }
+            },
+            {
+                "$sort": {
+                    "data.created_at": -1
+                }
+            },
+            limit
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération des notifications du freelancer : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var outMessage = 0,
+                        listOut = [],
+                        offer = require("./Offer");
+
+                    offer.initialize(db);
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        offer.getMessage(resultAggr[index], (isGet, message, resultToLast) => {
+                            outMessage++;
+                            if (isGet) {
+                                resultToLast.otherMessageNotRead = resultAggr[index].nbreMessage - 1;
+                                resultToLast.send_at = resultAggr[index].data[0].created_at;
+                                listOut.push(resultToLast);
+                            }
+
+                            if (outMessage == resultAggr.length) {
+                                callback(true, "Les messages y sont", listOut)
+                            }
+                        })
+                    }
+                } else {
+                    callback(false, "Aucune notification")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des notifications du freelancer : " + exception)
+    }
+}
