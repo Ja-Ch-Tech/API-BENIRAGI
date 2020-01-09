@@ -170,8 +170,7 @@ function callDocs(obj, callback) {
 
                     evaluation.initialize(db);
                     evaluation.getAverageNote(obj, (isGet, message, resultWithAverage) => {
-                        //callback(true, message, resultWithAverage)
-                        
+                        callback(true, message, resultWithAverage)
                     })
                 }
             })

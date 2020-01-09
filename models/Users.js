@@ -987,81 +987,88 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
     try {
         this.isEmployer(objet._id, (isTrue, message, resultTest) => {
             if (!isTrue) {
-                collection.value.aggregate([
-                    {
-                        "$match": {
-                            "_id": require("mongodb").ObjectId(objet._id),
-                            "flag": true,
-                            "visibility": true
+                var evaluation = require("./Evaluation");
+
+                evaluation.initialize(db);
+                evaluation.getAverageInTime(objet, (isGet, message, resultInTime) => {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "_id": require("mongodb").ObjectId(resultInTime._id),
+                                "flag": true,
+                                "visibility": true
+                            }
                         }
-                    }
-                ]).toArray((err, resultAggr) => {
-                    if (err) {
-                        callback(false, "Une erreur est survenue lors de la récupération des infos du user : " + err)
-                    } else {
-                        if (resultAggr.length > 0) {
-                            resultAggr[0].average = objet.average;
-                            resultAggr[0].id_viewer = objet.id_viewer;
-                            delete resultAggr[0].created_at;
-
-                            var type_users = require("./TypeUsers");
-
-                            type_users.initialize(db);
-                            type_users.getTypeForUser(resultAggr[0], (isGet, message, result) => {
-                                if (isGet) {
-                                    var media = require("./Media");
-
-                                    media.getInfos(result, (isGet, message, resultWithMedia) => {
-
-                                        var town = require("./Town");
-
-                                        town.initialize(db);
-                                        town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
-
-                                            var favoris = require("./Favoris");
-
-                                            favoris.initialize(db);
-                                            favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
-                                                //Suppression de datas en trop
-                                                delete resultWithTown.password;
-
-                                                if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
-                                                    resultWithFavorite.skills = [];
-                                                    var outSkills = 0,
-                                                        listOut = [],
-                                                        skills = require("./Skills");
-
-                                                    skills.initialize(db);
-                                                    for (let index = 0; index < resultWithFavorite.jobs.skills.length; index++) {
-                                                        skills.findOne(resultWithFavorite.jobs.skills[index], (isGet, message, resultWithSkills) => {
-                                                            outSkills++;
-                                                            if (isGet) {
-                                                                resultWithFavorite.skills.push(resultWithSkills.name)
-                                                            }
-
-                                                            if (outSkills == resultWithFavorite.jobs.skills.length) {
-                                                                callback(true, "Les infos des tops freelancers sont renvoyé", resultWithFavorite)
-                                                            }
-                                                        })
-                                                    }
-
-                                                } else {
-                                                    callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
-                                                }
-                                            })
-
-                                        })
-                                    })
-
-                                } else {
-                                    callback(false, message)
-                                }
-                            })
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la récupération des infos du user : " + err)
                         } else {
-                            callback(false, "Aucun user n'y correspond")
+                            if (resultAggr.length > 0) {
+                                resultAggr[0].average = resultInTime.average;
+                                resultAggr[0].inTime = parseInt(Math.ceil(resultInTime.inTime * 100));
+                                resultAggr[0].id_viewer = resultInTime.id_viewer;
+                                delete resultAggr[0].created_at;
+
+                                var type_users = require("./TypeUsers");
+
+                                type_users.initialize(db);
+                                type_users.getTypeForUser(resultAggr[0], (isGet, message, result) => {
+                                    if (isGet) {
+                                        var media = require("./Media");
+
+                                        media.getInfos(result, (isGet, message, resultWithMedia) => {
+
+                                            var town = require("./Town");
+
+                                            town.initialize(db);
+                                            town.getInfos(resultWithMedia, (isGet, message, resultWithTown) => {
+
+                                                var favoris = require("./Favoris");
+
+                                                favoris.initialize(db);
+                                                favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
+                                                    //Suppression de datas en trop
+                                                    delete resultWithTown.password;
+
+                                                    if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
+                                                        resultWithFavorite.skills = [];
+                                                        var outSkills = 0,
+                                                            listOut = [],
+                                                            skills = require("./Skills");
+
+                                                        skills.initialize(db);
+                                                        for (let index = 0; index < resultWithFavorite.jobs.skills.length; index++) {
+                                                            skills.findOne(resultWithFavorite.jobs.skills[index], (isGet, message, resultWithSkills) => {
+                                                                outSkills++;
+                                                                if (isGet) {
+                                                                    resultWithFavorite.skills.push(resultWithSkills.name)
+                                                                }
+
+                                                                if (outSkills == resultWithFavorite.jobs.skills.length) {
+                                                                    callback(true, "Les infos des tops freelancers sont renvoyé", resultWithFavorite)
+                                                                }
+                                                            })
+                                                        }
+
+                                                    } else {
+                                                        callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                                    }
+                                                })
+
+                                            })
+                                        })
+
+                                    } else {
+                                        callback(false, message)
+                                    }
+                                })
+                            } else {
+                                callback(false, "Aucun user n'y correspond")
+                            }
                         }
-                    }
+                    })
                 })
+                
             } else {
                 callback(false, message)
             }

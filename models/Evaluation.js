@@ -27,6 +27,7 @@ module.exports.evaluate = (newEvaluate, callback) => {
                 offer.testOfferExist(newEvaluate.id_employer, newEvaluate.id_freelancer, (isTrue, message, resultTest) => {
                     if (isTrue) {
 
+                        newEvaluate.inTime = newEvaluate.inTime ? 1 : 0;
                         collection.value.insertOne(newEvaluate, (err, result) => {
                             if (err) {
                                 callback(false, "Une erreur lors de l'insertion de son evaluation : " + err)
@@ -96,6 +97,9 @@ module.exports.getAverageNote = (objet, callback) => {
                     "_id": "$id_freelancer",
                     "average": {
                         "$avg": "$note"
+                    },
+                    "inTime": {
+                        "$avg": "$inTime"
                     }
                 }
             }
@@ -105,12 +109,14 @@ module.exports.getAverageNote = (objet, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     objet.average = resultAggr[0].average;
+                    objet.inTime = parseInt(Math.ceil(resultAggr[0].inTime * 100));
                     
                     this.getFeedBacks(objet, (isGet, message, resultWithFeedbacks) => {
                         callback(true, message, resultWithFeedbacks)
                     })
                 } else {
                     objet.average = 0;
+                    objet.inTime = 0;
                     callback(false, "Aucune note", objet)
                 }
             }
@@ -299,6 +305,9 @@ module.exports.getTop = (id_viewer, limit, callback) => {
                     "_id": "$id_freelancer",
                     "average": {
                         "$avg": "$note"
+                    },
+                    "inTime": {
+                        "$avg": "$inTime"
                     }
                 }
             },
@@ -328,7 +337,7 @@ module.exports.getTop = (id_viewer, limit, callback) => {
 
                             if (outTopFreelance == resultAggr.length) {
                                 if (listOut.length == parseInt(limit)) {
-                                    callback(false, "Voici le top freelancer", listOut);
+                                    callback(true, "Voici le top freelancer", listOut);
                                 } else {
                                     
                                     var reste = parseInt(limit) - listOut.length;
@@ -354,5 +363,40 @@ module.exports.getTop = (id_viewer, limit, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des top freelancer : " + exception)
+    }
+}
+
+//Récupération de la moyenne de ces notes dans le temps
+module.exports.getAverageInTime = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": objet._id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_freelancer",
+                    "inTime": {
+                        "$avg": "$inTime"
+                    }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la moyenne de inTime : " + err)
+            } else {
+                if(resultAggr.length > 0) {
+                    objet.inTime = resultAggr[0].inTime;
+                    callback(true, "La moyenne a été faites", objet)
+                }else{
+                    objet.inTime = 0;
+                    callback(false, "Personne n'y a défini", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exceptiona a été lévée lors de la moyenne de inTime : " + exception)
     }
 }

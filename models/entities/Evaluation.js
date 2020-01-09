@@ -4,6 +4,7 @@ module.exports.Evaluation = function Evaluation() {
         id_freelancer: String,
         note: Number,
         message: String,
+        inTime: Number,
         created_at: new Date()
     }
 }
