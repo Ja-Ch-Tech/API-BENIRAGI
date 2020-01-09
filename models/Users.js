@@ -729,7 +729,6 @@ module.exports.getInfos = (objet, callback) => {
                                                 callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
                                             })
                                         }
-                                        /**/
                                     })
 
                                 })

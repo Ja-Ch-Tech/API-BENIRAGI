@@ -35,4 +35,18 @@ router.get('/getNewMessageNotRead/:id_user/:limit', (req, res) => {
     })
 })
 
+//Marqué comme lu une notification
+router.get('/setAlreadyRead/:id', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.initialize(db);
+    model.setAlreadyRead(req.params.id, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

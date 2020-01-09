@@ -151,7 +151,8 @@ module.exports.getNewMessageNotRead = (id_user, limit, callback) => {
                     },
                     "data": {
                         "$push": {
-                            "created_at": "$created_at"
+                            "created_at": "$created_at",
+                            "_id": "$_id"
                         }
                     },
                     "nbreMessage": {"$sum": 1}
@@ -179,6 +180,16 @@ module.exports.getNewMessageNotRead = (id_user, limit, callback) => {
                             if (isGet) {
                                 resultToLast.otherMessageNotRead = resultAggr[index].nbreMessage - 1;
                                 resultToLast.send_at = resultAggr[index].data[0].created_at;
+                                resultToLast._id = "" + resultAggr[index].data[0]._id;
+
+                                //Suppression des données en surplus
+                                resultToLast.bio ? delete resultToLast.bio : "";
+                                resultToLast.feedBacks ? delete resultToLast.feedBacks : "";
+                                resultToLast.flag ? delete resultToLast.flag : "";
+                                resultToLast.hourly ? delete resultToLast.hourly : "";
+                                resultToLast.skills ? delete resultToLast.skills : "";
+                                resultToLast.town ? delete resultToLast.town : "";
+
                                 listOut.push(resultToLast);
                             }
 
@@ -194,5 +205,45 @@ module.exports.getNewMessageNotRead = (id_user, limit, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des notifications du freelancer : " + exception)
+    }
+}
+
+//Marqué une notification lue
+module.exports.setAlreadyRead = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération de la notification : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var filter = {
+                            "_id": resultAggr[0]._id
+                        },
+                        update = {
+                            "$set": {
+                                "flag": true
+                            }
+                        };
+
+                    collection.value.updateOne(filter, update, (err, resultUp) => {
+                        if (err) {
+                            callback(false, "Une erreur lors de la désactivation de la notification : " +err)
+                        } else {
+                            callback(true, "La notification a été lue", resultUp)
+                        }
+                    })
+                } else {
+                    callback(false, "Notification inéxistant")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération de la notification : " + exception)
     }
 }
