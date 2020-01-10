@@ -330,11 +330,17 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                     for (let index = 0; index < resultAggr.length; index++) {
 
                         this.getEntrants(resultAggr[index]._id, (isGet, message, resultWithEntrant) => {
+                            outOffer++;
                             if (isGet) {
                                 resultAggr[index].entrants = resultWithEntrant;
+                                listOut.push(resultAggr[index]);
                             }
 
-                            for (let indexMessage = 0; indexMessage < resultAggr[index].messages[0].messages.length; indexMessage++) {
+                            if (outOffer == resultAggr.length) {
+                                callback(true, "Les messages sont renvoyé", listOut)
+                            }
+
+                            /*for (let indexMessage = 0; indexMessage < resultAggr[index].messages[0].messages.length; indexMessage++) {
 
                                 resultAggr[index].messages[0].messages[indexMessage].id_user = resultAggr[index].messages[0].messages[indexMessage].id_sender;
 
@@ -349,11 +355,10 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                                     }
 
                                     if (outOffer == resultAggr.length) {
-                                        callback(true, "Les messages sont renvoyé", listOut)
                                     }
 
                                 })
-                            }
+                            }*/
                         })
                         
                     }
