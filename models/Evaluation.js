@@ -341,7 +341,7 @@ module.exports.getTop = (id_viewer, limit, callback) => {
                                 } else {
                                     
                                     var reste = parseInt(limit) - listOut.length;
-                                    users.getFreelancers(reste, "old", (isGet, message, resultOld) => {
+                                    users.getFreelancers(reste, "old", id_viewer, (isGet, message, resultOld) => {
                                         if (isGet) {
                                             var concatList = listOut.concat(resultOld);
                                             callback(true, "Voici le top freelancer avec un plus", concatList)
@@ -355,7 +355,7 @@ module.exports.getTop = (id_viewer, limit, callback) => {
                         })
                     }
                 }else {
-                    users.getFreelancers(limit, "new", (isDefine, message, resultNew) => {
+                    users.getFreelancers(limit, "new", id_viewer, (isDefine, message, resultNew) => {
                         callback(isDefine, message, resultNew)
                     })
                 }

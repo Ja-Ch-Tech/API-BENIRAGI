@@ -250,12 +250,13 @@ router.get('/topFreelance/:id_viewer/:limit', (req, res) => {
  * new => pour récupérer les nouveaux freelancers
  * old => pour les anciens
  */
-router.get('/getFreelancers/:moment/:limit', (req, res) => {
+router.get('/getFreelancers/:moment/:limit/:id_viewer', (req, res) => {
     var objetRetour = require("./ObjetRetour").ObjetRetour(),
-        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null;
+        limit = parseInt(req.params.limit) ? parseInt(req.params.limit) : null,
+        id_viewer = req.params.id_viewer ? req.params.id_viewer : null;
 
     model.initialize(db);
-    model.getFreelancers(limit, req.params.moment, (isGet, message, result) => {
+    model.getFreelancers(limit, req.params.moment, id_viewer, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

@@ -117,11 +117,9 @@ module.exports.searchJob = (value, callback) => {
 //Récupération des infos supplémentaire
 module.exports.getInfos = (objet, callback) => {
     try {
-        if (objet.id_job) {
-            module.exports.findOneById(objet.id_job, (isFound, message, result) => {
-                delete objet.id_job;
-                delete result._id;
-
+        if (objet.jobs && objet.jobs.id_job) {
+            module.exports.findOneById(objet.jobs.id_job, (isFound, message, result) => {
+            
                 if (isFound) {
                     objet.job = result;
                     

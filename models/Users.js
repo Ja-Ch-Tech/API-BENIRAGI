@@ -1026,9 +1026,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
 
                                                 favoris.initialize(db);
                                                 favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
-                                                    //Suppression de datas en trop
-                                                    delete resultWithTown.password;
-
+                                                    
                                                     if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
                                                         resultWithFavorite.skills = [];
                                                         var outSkills = 0,
@@ -1080,7 +1078,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
 }
 
 //Pour récupérer les nouveaux freelancers
-module.exports.getFreelancers = (limit, moment, callback) => {
+module.exports.getFreelancers = (limit, moment, id_viewer, callback) => {
     try {
         var type_users = require("./TypeUsers");
 
@@ -1108,7 +1106,8 @@ module.exports.getFreelancers = (limit, moment, callback) => {
                                 listOut = [];
 
                             for (let index = 0; index < resultAggr.length; index++) {
-                                resultAggr[index]._id = "" + resultAggr[index]._id
+                                resultAggr[index]._id = "" + resultAggr[index]._id;
+                                resultAggr[index].id_viewer = id_viewer;
                                 this.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
                                     outUsers++;
                                     if (isGet) {
