@@ -93,6 +93,7 @@ module.exports.getOfferForFreelancer = (id_freelancer, limit, callback) => {
                         offer.getDetails(resultAggr[index].id_offer, (isGet, message, result) => {
                             outOffer++;
                             if (isGet) {
+                                result._id = resultAggr[index]._id;
                                 listOut.push(result)
                             }
 
