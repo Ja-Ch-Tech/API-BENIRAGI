@@ -11,7 +11,7 @@ module.exports.initialize = (db) => {
 //Récupération des métier
 module.exports.getJobs = (limit, callback) => {
     try {
-        var limit = limit && parseInt(limit) ? {"$limit": parseInt(limit)} : {"$match": {}};
+        var limit = limit && parseInt(limit) ? { "$limit": parseInt(limit) } : { "$match": {} };
 
         collection.value.aggregate([
             {
@@ -23,7 +23,7 @@ module.exports.getJobs = (limit, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la récupération des metier : " +err)
+                callback(false, "Une erreur lors de la récupération des metier : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var users = require("./Users"),
@@ -64,7 +64,7 @@ module.exports.findOneById = (id, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de la recherche du job : " +err)
+                callback(false, "Une erreur est survenue lors de la recherche du job : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     callback(true, "Le job y est", resultAggr[0])
@@ -85,8 +85,8 @@ module.exports.searchJob = (value, callback) => {
             {
                 "$match": {
                     "$or": [
-                        {"name": new RegExp(value, "i")},
-                        {"describe": new RegExp(value, "i")}
+                        { "name": new RegExp(value, "i") },
+                        { "describe": new RegExp(value, "i") }
                     ]
                 }
             },
@@ -100,7 +100,7 @@ module.exports.searchJob = (value, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la recherche du job : " +err)
+                callback(false, "Une erreur lors de la recherche du job : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     callback(true, "Voici les jobs", resultAggr)
@@ -110,7 +110,7 @@ module.exports.searchJob = (value, callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -119,10 +119,10 @@ module.exports.getInfos = (objet, callback) => {
     try {
         if (objet.jobs && objet.jobs.id_job) {
             module.exports.findOneById(objet.jobs.id_job, (isFound, message, result) => {
-            
+
                 if (isFound) {
                     objet.job = result;
-                    
+
                     callDocs(objet, (isCall, message, result) => {
                         callback(isCall, message, result);
                     })
@@ -163,7 +163,7 @@ function callDocs(obj, callback) {
                 if (outDocs == obj.docs) {
                     delete obj.docs;
                     obj.docs = listDocs;
-                    
+
                     var evaluation = require("./Evaluation");
 
                     evaluation.initialize(db);
@@ -180,5 +180,158 @@ function callDocs(obj, callback) {
         evaluation.getAverageNote(obj, (isGet, message, resultWithAverage) => {
             callback(true, message, resultWithAverage)
         })
+    }
+}
+
+/**
+ * Module passant une recherche suivant la ville et le metier si besoin est
+ */
+module.exports.smartSearch = (objet, callback) => {
+    try {
+        var town = require("./Town"),
+            users = require("./Users");
+
+        town.initialize(db);
+        users.initialize(db);
+
+        if (objet.job && objet.town) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "$or": [
+                            {
+                                "name": { "$regex": new RegExp(objet.job, "i") }
+                            },
+                            {
+                                "describe": { "$regex": new RegExp(objet.job, "i") }
+                            }
+                        ]
+
+                    }
+                },
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur est survenue lors de la recherche du job : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        town.smartSearch(objet, (isGet, message, resultTown) => {
+                            if (isGet) {
+                                var formatThis = {
+                                    id_job: "" + resultAggr[0]._id,
+                                    id_town: "" + resultTown._id
+                                };
+
+                                users.smartSearch(formatThis, (isFound, message, result) => {
+                                    if (isFound) {
+                                        callback(true, "La recherche est finie", result)
+                                    } else {
+                                        callback(false, message)
+                                    }
+                                })
+                            } else {
+                                var formatThis = {
+                                    id_job: "" + resultAggr[0]._id,
+                                    id_town: null
+                                };
+
+                                users.smartSearch(formatThis, (isFound, message, result) => {
+                                    if (isFound) {
+                                        callback(true, "La recherche est finie", result)
+                                    } else {
+                                        callback(false, message)
+                                    }
+                                })
+                            }
+                        })
+                    } else {
+                        if (objet.town) {
+                            town.smartSearch(objet, (isGet, message, resultTown) => {
+                                if (isGet) {
+                                    var formatThis = {
+                                        id_job: null,
+                                        id_town: "" + resultTown._id
+                                    };
+
+                                    users.smartSearch(formatThis, (isFound, message, result) => {
+                                        if (isFound) {
+                                            callback(true, "La recherche est finie", result)
+                                        } else {
+                                            callback(false, message)
+                                        }
+                                    })
+                                } else {
+                                    callback(false, "On y a rien trouvé")
+                                }
+                            })
+                        } else {
+                            callback(false, "On y a rien trouvé")
+                        }
+                    }
+                }
+            })
+        } else if (objet.job) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "$or": [
+                            {
+                                "name": { "$regex": new RegExp(objet.job, "i") }
+                            },
+                            {
+                                "describe": { "$regex": new RegExp(objet.job, "i") }
+                            }
+                        ]
+
+                    }
+                },
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur est survenue lors de la recherche du job : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+
+                        var formatThis = {
+                            id_job: "" + resultAggr[0]._id,
+                            id_town: null
+                        };
+
+                        users.smartSearch(formatThis, (isFound, message, result) => {
+                            if (isFound) {
+                                callback(true, "La recherche est finie", result)
+                            } else {
+                                callback(false, message)
+                            }
+                        })
+                    } else {
+                        callback(false, "Aucun user")
+                    }
+                }
+            })
+        } else if (objet.town) {
+            town.smartSearch(objet, (isGet, message, resultTown) => {
+                if (isGet) {
+                    var formatThis = {
+                        id_job: null,
+                        id_town: "" + resultTown._id
+                    };
+
+                    users.smartSearch(formatThis, (isFound, message, result) => {
+                        if (isFound) {
+                            callback(true, "La recherche est finie", result)
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+                } else {
+                    callback(false, "On y a rien trouvé")
+                }
+            })
+        }else {
+            users.getFreelancers(null, "new", objet.id_viewer, (isGet, message, result) => {
+                callback(isGet, message, result)
+            })
+        }
+    } catch (exception) {
+
     }
 }

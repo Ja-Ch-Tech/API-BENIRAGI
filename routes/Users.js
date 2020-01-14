@@ -3,7 +3,8 @@ var router = express.Router();
 
 var db = require("../models/db"),
     model = require("../models/Users"),
-    modelEvaluation = require("../models/Evaluation");
+    modelEvaluation = require("../models/Evaluation"),
+    modelJob = require("../models/Jobs");
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -289,6 +290,25 @@ router.post('/setHourly', (req, res) => {
     model.initialize(db);
     model.setHourlyRate(entity, (isSet, message, result) => {
         objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Router permettant de passer une recherche
+router.post('/smartSearch/:id_viewer', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            job: req.body.job ? req.body.job : null,
+            town: req.body.town ? req.body.town : null,
+            id_viewer: req.params.id_viewer 
+        };
+    
+    modelJob.initialize(db);
+    modelJob.smartSearch(objet, (isFound, message, result) => {
+        objetRetour.getEtat = isFound;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 

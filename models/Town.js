@@ -114,3 +114,34 @@ module.exports.findOneById = (id, callback) => {
         callback(false, "Une exception de recherche de la ville : " + exception)
     }
 }
+
+/**
+ * La recherche via ville et métier
+ */
+module.exports.smartSearch = (objet, callback) => {
+    try {
+        if (objet.town) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "name": { "$regex": new RegExp(objet.town, "i") }
+                    }
+                },
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur est survenue lors de la recherche du job : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        callback(true, "La ville est là", resultAggr[0])
+                    } else {
+                        callback(false, "Nous n'avons rien trouvé")                        
+                    }
+                }
+            })
+        } else {
+            callback(false, "Ville inexistant")
+        }
+    } catch (exception) {
+
+    }
+}

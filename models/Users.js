@@ -984,7 +984,7 @@ module.exports.stats = (id, callback) => {
 //Pour recupérer les infos d'un user
 module.exports.getInfosForFreelancer = (objet, callback) => {
     try {
-        this.isEmployer(objet._id, (isTrue, message, resultTest) => {
+        this.isEmployer("" + objet._id, (isTrue, message, resultTest) => {
             if (!isTrue) {
                 var evaluation = require("./Evaluation");
 
@@ -1203,5 +1203,142 @@ module.exports.setHourlyRate = (newHourly, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la mise à jour : " + exception)
+    }
+}
+
+/**
+ * SmartSearch
+ */
+module.exports.smartSearch = (objet, callback) => {
+    try {
+        if (objet.id_job && objet.id_town) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "$and": [
+                            {
+                                "$or": [
+                                    { "jobs": { "$exists": 1 } },
+                                    { "id_town": { "$exists": 1 } }
+                                ]
+                            },
+                            { "jobs.id_job": objet.id_job },
+                            { "id_town": objet.id_town },
+                            {"flag": true}
+                        ]
+
+                    }
+                }
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur lors de la récupération des users : " +err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        var outFreelancer = 0,
+                            listOut = [];
+
+                        for (let index = 0; index < resultAggr.length; index++) {
+                            this.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
+                                outFreelancer++;
+                                if (isGet) {
+                                    listOut.push(resultWithInfos)
+                                }
+
+                                if (outFreelancer == resultAggr.length) {
+                                    callback(true, "Les users y sont", listOut)
+                                }
+                            })
+                        }
+                    } else {
+                        callback(false, "Aucun user")
+                    }
+                }
+            })
+        } else if(objet.id_job) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "$and": [
+                            {
+                                "$or": [
+                                    { "jobs": { "$exists": 1 } }
+                                ]
+                            },
+                            { "jobs.id_job": objet.id_job },
+                            { "flag": true }
+                        ]
+
+                    }
+                }
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur lors de la récupération des users : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        var outFreelancer = 0,
+                            listOut = [];
+
+                        for (let index = 0; index < resultAggr.length; index++) {
+                            this.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
+                                outFreelancer++;
+                                if (isGet) {
+                                    listOut.push(resultWithInfos)
+                                }
+
+                                if (outFreelancer == resultAggr.length) {
+                                    callback(true, "Les users y sont", listOut)
+                                }
+                            })
+                        }
+                    } else {
+                        callback(false, "Aucun user")
+                    }
+                }
+            })
+        } else if(objet.id_town) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "$and": [
+                            {
+                                "$or": [
+                                    { "id_town": { "$exists": 1 } }
+                                ]
+                            },
+                            { "id_town": objet.id_town },
+                            { "flag": true }
+                        ]
+
+                    }
+                }
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur lors de la récupération des users : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        var outFreelancer = 0,
+                            listOut = [];
+
+                        for (let index = 0; index < resultAggr.length; index++) {
+                            this.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithInfos) => {
+                                outFreelancer++;
+                                if (isGet) {
+                                    listOut.push(resultWithInfos)
+                                }
+
+                                if (outFreelancer == resultAggr.length) {
+                                    callback(true, "Les users y sont", listOut)
+                                }
+                            })
+                        }
+                    } else {
+                        callback(false, "Aucun user")
+                    }
+                }
+            })
+        }
+        
+    } catch (exception) {
+        callback(false, "Une exception : " + exception)
     }
 }
