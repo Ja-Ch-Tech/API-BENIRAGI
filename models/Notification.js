@@ -248,3 +248,45 @@ module.exports.setAlreadyRead = (id, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération de la notification : " + exception)
     }
 }
+
+module.exports.setAllAlreeadyRead = (objet, callback) => {
+    try {
+        var type = /message|messages/i.test(objet.type) ? "Send Message" : "Send Offer";
+
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "$or": [
+                        { "id_freelancer": objet.id },
+                        { "id_receiver": objet.id },
+                    ],
+                    "flag": false,
+                    "type": type
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération des notifications : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var outNotifier = 0;
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                       
+                        this.setAlreadyRead(resultAggr[index]._id, (isSet, message, result) => {
+                            outNotifier++
+
+                            if (outNotifier == resultAggr.length) {
+                                callback(true, "Les notifications ont été marqué comme lu")
+                            }
+                        })
+                    }
+                } else {
+                    callback(false, "Toutes les notifications ont déjà été lu")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du marquage comme lu des notifications : " +err)
+    }
+}

@@ -313,7 +313,8 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                         "$push": {
                             "messages": "$messages"
                         }
-                    }
+                    },
+                    "flag": { "$addToSet": {"flag" : "$flag"} }
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -446,10 +447,15 @@ module.exports.gets = (id_employer, callback) => {
 
                             users.initialize(db);
                             for (let index = 0; index < resultAggr.length; index++) {
+                                resultAggr[index].id_viewer = id_employer;
                                 users.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithDetails) => {
                                     outFreelancer++;
                                     if (isGet) {
+                                        var feedBack = getItemForFeedback(resultWithDetails.feedBacks, resultWithDetails.id_viewer);
+
                                         delete resultWithDetails.feedBacks;
+
+                                        resultWithDetails.thisFeedBack = feedBack;
 
                                         listOut.push({
                                             infos: resultWithDetails,
@@ -474,6 +480,12 @@ module.exports.gets = (id_employer, callback) => {
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des offres : " + exception)
     }
+}
+
+function getItemForFeedback(tableau, id) {
+    const itemOut = tableau.find(item => item.identity_employeur._id == id);
+
+    return itemOut;
 }
 
 //Récupération des messages
@@ -589,5 +601,63 @@ module.exports.getEntrants = (id, callback) => {
         })
     } catch (exception) {
 
+    }
+}
+
+//Bloquer ou relancer la conversation
+module.exports.toggleOffer = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.id)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la recherche de l'offre : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var filter = {
+                        "_id": resultAggr[0]._id
+                    },
+                        update = {
+                            "$set": {
+                                "flag": resultAggr[0].flag == true ? false : true
+                            }
+                        };
+
+                    collection.value.updateOne(filter, update, (err, resultUp) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors du toggle de l'offre : " + err)
+                        } else {
+                            if (resultUp) {
+                                if (resultAggr[0].flag == false) {
+                                    var notifier = require("./Notification"),
+                                        entityEndOffer = require("./entities/Notification").EndOffer();
+
+                                    entityEndOffer.id_offer = "" + resultAggr[0]._id;
+                                    entityEndOffer.id_resiler = objet.id_resiler;
+
+                                    notifier.sendNotificationOffer(entityEndOffer, (isSend, message, result) => {
+                                        callback(true, message, {flag: false})
+                                    })
+                                } else {
+                                    callback(true, "La conversation a été rélancé", {flag: true})
+                                }
+
+                            } else {
+                                callback(false, "Aucune mise à jour")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, "Aucune offre n'y correspond")
+                }
+            }
+        })
+            
+    } catch (exception) {
+        
     }
 }

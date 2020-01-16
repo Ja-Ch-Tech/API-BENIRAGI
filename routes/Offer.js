@@ -88,4 +88,22 @@ router.get('/getFreelancersForOffer/:id_employer', (req, res) => {
     })
 })
 
+//Bloquer ou rélancer la conversation
+router.post('/toggle/:id_offer/:id_resiler', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            "id": req.params.id_offer,
+            "id_resiler": req.params.id_resiler
+        };
+
+    model.initialize(db);
+    model.toggleOffer(objet, (onToggle, message, result) => {
+        objetRetour.getEtat = onToggle;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour)
+    })
+})
+
 module.exports = router;

@@ -49,4 +49,22 @@ router.get('/setAlreadyRead/:id', (req, res) => {
     })
 })
 
+//Marqué tout comme lu une notification
+router.get('/setAllAlreadyRead/:id/:type', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            "id": req.params.id,
+            "type": req.params.type
+        };
+
+    model.initialize(db);
+    model.setAllAlreeadyRead(objet, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

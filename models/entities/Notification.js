@@ -18,3 +18,13 @@ module.exports.SendMessage = function SendMessage() {
         created_at: new Date()
     }
 }
+
+module.exports.EndOffer = function EndOffer() {
+    return {
+        id_offer: String,
+        id_resiler: String,
+        flag: false,
+        type: "End Offer",
+        created_at: new Date()
+    }
+}

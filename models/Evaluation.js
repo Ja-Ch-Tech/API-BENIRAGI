@@ -57,7 +57,9 @@ module.exports.evaluate = (newEvaluate, callback) => {
                             },
                             update = {
                                 "$set": {
-                                    "note": parseInt(newEvaluate.note)
+                                    "note": parseInt(newEvaluate.note),
+                                    "message": newEvaluate.message && newEvaluate.message.trim(" ") ? newEvaluate.message : resultAggr[0].message,
+                                    "inTime": newEvaluate.inTime ? true : false,
                                 }
                             };
 
@@ -150,7 +152,6 @@ module.exports.getFeedBacks = (objet, callback) => {
                             outEvaluation++;
                             if (isGet) {
                                 //Suppression des datas en trop dans la réponse
-                                delete result._id;
                                 delete result.password;
                                 delete result.id_type;
                                 delete result.flag;
