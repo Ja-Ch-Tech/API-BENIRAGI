@@ -374,12 +374,12 @@ module.exports.toggleVisibility = (id_user, callback) => {
                         }
                     };
 
-                collection.value.updateOne(filter, update, (err, result) => {
+                collection.value.updateOne(filter, update, (err, resultUp) => {
                     if (err) {
                         callback(false, "Une erreur a été lévée lors de la mise à jour de sa visisbilité : " + err)
                     } else {
-                        if (result) {
-                            callback(true, "Mise à jour de visibilité effectué", result)
+                        if (resultUp) {
+                            callback(true, "Mise à jour de visibilité effectué", {flag: result.visibility ? false : true})
                         } else {
                             callback(false, "Aucune mise à jour !")
                         }
