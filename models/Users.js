@@ -1,6 +1,9 @@
 var db = require("./db"),
     bcrypt = require("bcryptjs"),
-    nodemailer = require("nodemailer");
+    nodemailer = require("nodemailer"),
+    jwt = require("jsonwebtoken");
+
+const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e";
 
 var collection = {
     value: null
@@ -45,7 +48,7 @@ module.exports.register = (newUser, callback) => {
 
                                             type_users.initialize(db)
                                             type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
-                                                
+
                                                 var code = require("./Code");
 
                                                 code.initialize(db);
@@ -63,7 +66,7 @@ module.exports.register = (newUser, callback) => {
                                                     }
                                                 })
                                             })
-                                            
+
                                         } else { //Si non l'etat sera false et on envoi un message
                                             callback(false, "Désolé, l'utilisateur non enregistrer")
                                         }
@@ -379,7 +382,7 @@ module.exports.toggleVisibility = (id_user, callback) => {
                         callback(false, "Une erreur a été lévée lors de la mise à jour de sa visisbilité : " + err)
                     } else {
                         if (resultUp) {
-                            callback(true, "Mise à jour de visibilité effectué", {flag: result.visibility ? false : true})
+                            callback(true, "Mise à jour de visibilité effectué", { flag: result.visibility ? false : true })
                         } else {
                             callback(false, "Aucune mise à jour !")
                         }
@@ -1026,7 +1029,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
 
                                                 favoris.initialize(db);
                                                 favoris.isThisInFavorite(resultWithTown, (isIn, message, resultWithFavorite) => {
-                                                    
+
                                                     if (resultWithFavorite.jobs && resultWithFavorite.jobs.skills && resultWithFavorite.jobs.skills.length > 0) {
                                                         resultWithFavorite.skills = [];
                                                         var outSkills = 0,
@@ -1065,7 +1068,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                         }
                     })
                 })
-                
+
             } else {
                 callback(false, message)
             }
@@ -1224,14 +1227,14 @@ module.exports.smartSearch = (objet, callback) => {
                             },
                             { "jobs.id_job": objet.id_job },
                             { "id_town": objet.id_town },
-                            {"flag": true}
+                            { "flag": true }
                         ]
 
                     }
                 }
             ]).toArray((err, resultAggr) => {
                 if (err) {
-                    callback(false, "Une erreur lors de la récupération des users : " +err)
+                    callback(false, "Une erreur lors de la récupération des users : " + err)
                 } else {
                     if (resultAggr.length > 0) {
                         var outFreelancer = 0,
@@ -1254,7 +1257,7 @@ module.exports.smartSearch = (objet, callback) => {
                     }
                 }
             })
-        } else if(objet.id_job) {
+        } else if (objet.id_job) {
             collection.value.aggregate([
                 {
                     "$match": {
@@ -1295,7 +1298,7 @@ module.exports.smartSearch = (objet, callback) => {
                     }
                 }
             })
-        } else if(objet.id_town) {
+        } else if (objet.id_town) {
             collection.value.aggregate([
                 {
                     "$match": {
@@ -1337,8 +1340,242 @@ module.exports.smartSearch = (objet, callback) => {
                 }
             })
         }
-        
+
     } catch (exception) {
         callback(false, "Une exception : " + exception)
+    }
+}
+
+module.exports.findOneByEmail = (email, callback) => {
+    try {
+        if (/^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z]{2,6}$/i.test(email)) {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "email": email,
+                        "flag": true
+                    }
+                }
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    callback(false, "Une erreur est survenue lors de la récupération des infos via adresse mail : " + err)
+                } else {
+                    if (resultAggr.length > 0) {
+                        callback(true, "Les infos du user", resultAggr[0])
+                    } else {
+                        callback(false, "Aucun utilisateur actif")
+                    }
+                }
+            })
+        }else{
+            callback(false, "Adresse e-mail non-conforme")
+        }
+    } catch (exception) {
+        callback(false, "Une exception a été lévé lors de la récupération de l'adresse mail: " + exception)
+    }
+}
+
+/**
+ * Mot de passe oublié
+ */
+module.exports.forgotPassword = (objet, callback) => {
+    try {
+        this.findOneByEmail(objet.email, (isFound, message, result) => {
+            if (isFound) {
+                var token = generateToken(result),
+                    objetSend = {
+                        email: result.email,
+                        token: token
+                    };
+
+                sendMailForForgetPassword(objetSend, (isSend, message, result) => {
+                    callback(isSend, message)
+                })
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception lors de l'envoie du token : " + exception)
+    }
+}
+
+/**
+ * La génération du token
+ * @param {Object} objet L'objet pour tokenizer
+ */
+function generateToken(objet) {
+    return jwt.sign({
+        id_user: "" + objet._id
+    }, SIGN_TOKEN_SECRET, {
+        expiresIn: '2h'
+    })
+}
+
+/**
+ * L'envoi du mail de réinitialisation du mot de passe
+ * @param {Object} objet L'objet sur lequel le mail puise les informations
+ * @param {Function} callback La fonction de retour
+ */
+function sendMailForForgetPassword(objet, callback) {
+
+    const WEBSITE = require("../utils/constantes").WEB_SITE().online;
+    const output = `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                    <title>Activation de compte</title>
+                </head>
+                <body>
+                    <table  width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 20pt;">
+                        <tr>
+                            <td rowspan="8" width="5%">&nbsp;</td>
+                            <td style="text-align: center;">
+                                <div style="font-family: Segoe UI; font-size: 16pt; padding-top: 10pt;">BENIRAGI-SERVICE, All in one</div>
+                            </td>
+                            <td rowspan="8" width="5%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center; padding-top: 20pt; padding-bottom: 20pt;">
+                                <!-- Image doit être en ligne -->
+                                <img src="https://i.goopics.net/xn192.png" alt="Pas trouvé" width="100px" height="100px">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <p>Pour réinitialiser votre mot de passe <a href="${WEBSITE}/activation?tkn=${objet.token}" style="color: crimson;>cliquez par ici</a>.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
+                        </tr>
+                    </table>
+                </body>
+                </html>`;
+
+    let transporter = nodemailer.createTransport({
+        host: "smtp.live.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: "anonymouspeter007@hotmail.com",
+            pass: "tubemate123"
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+
+    let mailOptions = {
+        from: '"Beniragi-Service" <anonymouspeter007@hotmail.com>',
+        to: objet.email,
+        subject: "Réinitialisation du mot de passe",
+        html: output
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+
+        if (error) {
+            console.log("Erreur d'envoi de mail");
+            console.log(error);
+            callback(false, "Lien non-envoyé : " + error, objet)
+        } else {
+            console.log("Mail envoyé avec succès");
+            callback(true, "Lien envoyé avec succès", objet)
+        }
+
+        transporter.close();
+
+    })
+}
+
+/**
+ * Le decodage de la chaine tokenizer lors de la génération du token
+ * @param {String} token La chaine tokenizer au départ
+ * @param {Function} callback La fonction de retour 
+ */
+function decodeToken(token, callback) {
+    jwt.verify(token, SIGN_TOKEN_SECRET, { expiresIn: '2h'}, (err, decode) => {
+        if (err) {
+            if (err.name == 'NotBeforeError') {
+                callback(false, "Le token de l'activation a expiré")
+            } else {
+                callback(false, "Une erreur est survenue lors du decodage du token : " +err)
+            }
+        } else {
+            var objet = {
+                "id_user": decode.id_user
+            };
+
+            callback(true, "Le decodage est fini", objet)
+        }
+    })
+}
+
+//Module de réinitialisation du mot de passe en passant le nouveau mot de passe
+module.exports.resetPassword = (objet, callback) => {
+    try {
+        decodeToken(objet.token, (isDecode, message, result) => {
+            if (isDecode) {
+                this.findOneById(result.id_user, (isFound, message, result) => {
+                    if (isFound) {
+                        var clearPwd = "Beniragi" + objet.password + "jach";
+
+                        bcrypt.hash(clearPwd, 10, (err, hashed) => {
+                            if (err) {
+                                callback(false, "Une erreur est survenue lors du hash du nouveau mot de passe : " +err)
+                            } else {
+                                objet.password = hashed;
+                                var filter = {
+                                        "_id": result._id
+                                    },
+                                    update = {
+                                        "$set": {
+                                            "password": objet.password
+                                        }
+                                    };
+
+                                collection.value.updateOne(filter, update, (err, resultUp) => {
+                                    if (err) {
+                                        callback(false, "Une erreur lors de la mise à jour du mot de passe : " +err)
+                                    } else {
+                                        if (resultUp) {
+                                            var id_user = "" + result._id,
+                                                id_type = result.id_type,
+                                                flag = result.flag,
+                                                objetRetour = {
+                                                    "id_user": id_user,
+                                                    "id_type": id_type,
+                                                    "flag": flag
+                                                };
+
+                                            this.isEmployer(objetRetour.id_user, (isGet, message, resultEmployer) => {
+
+                                                objetRetour.isEmployer = resultEmployer.isEmployer;
+                                                callback(true, `Vous êtes connecté en tant que ${objetRetour.isEmployer ? "employeur" : "freelancer"}`, objetRetour);
+
+                                            });
+
+
+                                        } else {
+                                            callback(false, "Aucune mise à jour de mot de passe")
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    } else {
+                        callback(false, message)
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        
     }
 }

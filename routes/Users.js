@@ -316,4 +316,40 @@ router.post('/smartSearch/:id_viewer', (req, res) => {
     })
 })
 
+//Route appellant le mail devrant générer un token qui expirera dans 2 heures et lui sera envoyé par mail
+router.post('/forgotPassword', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            email: req.body.email
+        };
+
+    model.initialize(db);
+    model.forgotPassword(objet, (isUndo, message, result) => {
+        objetRetour.getEtat = isUndo;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
+//Route permettant la réinitialisation du mot de passe en passant le token qui est dans sont mail et le nouveau mot de passe
+router.post('/resetPassword', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour(),
+        objet = {
+            "token": req.body.token,
+            "password": req.body.newPassword
+        };
+
+    model.initialize(db);
+    model.resetPassword(objet, (isUndo, message, result) => {
+        objetRetour.getEtat = isUndo;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+
+})
+
 module.exports = router;
