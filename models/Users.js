@@ -1446,7 +1446,7 @@ function sendMailForForgetPassword(objet, callback) {
                         </tr>
                         <tr>
                             <td style="text-align: center;">
-                                <p>Pour réinitialiser votre mot de passe <a href="${WEBSITE}/activation?tkn=${objet.token}" style="color: crimson;>cliquez par ici</a>.</p>
+                                <div>Pour réinitialiser votre mot de passe <a href="${WEBSITE}/activation?tkn=${objet.token}">cliquez par ici</a>.</div>
                             </td>
                         </tr>
                         <tr>
@@ -1463,9 +1463,6 @@ function sendMailForForgetPassword(objet, callback) {
         auth: {
             user: "anonymouspeter007@hotmail.com",
             pass: "tubemate123"
-        },
-        tls: {
-            rejectUnauthorized: false
         }
     });
 
