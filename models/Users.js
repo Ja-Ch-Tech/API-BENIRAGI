@@ -4,7 +4,8 @@ var db = require("./db"),
     jwt = require("jsonwebtoken");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
-    EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    PSWD_REGEX = /^(?=.*\d).{4,8}$/;//Le mot de passe doit comprendre entre 4 et 8 chiffres et inclure au moins un chiffre numérique.
 
 var collection = {
     value: null
@@ -14,78 +15,85 @@ module.exports.initialize = (db) => {
     collection.value = db.get().collection("Users");
 }
 
+//Module pour l'inscription d'un user
 module.exports.register = (newUser, callback) => {
     try {
-        //On commence par crypter le mot de passe        
-        var valeur_pwd = "Beniragi" + newUser.password + "jach";
 
-        bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
-
-            if (errHash) { //Si une erreure survient lors du hashage du mot de passe
-                callback(false, "Une erreur est survenue lors du hashage du mot de passe : " + errHash);
-            } else { //Si non le mot de passe a été bien hashé
-
-                newUser.password = hashePwd;
-
-                testEmail(newUser, (isNotExist, message, result) => {
-                    if (isNotExist) {
-                        let type_users = require("./TypeUsers");
-
-                        type_users.initialize(db);
-                        type_users.findOne(newUser.id_type, (isFound, messageType, resultType) => {
-                            if (isFound) {
-                                newUser.id_type = "" + resultType._id;
-                                //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
-                                collection.value.insertOne(newUser, (err, result) => {
-
-                                    //On test s'il y a erreur
-                                    if (err) {
-                                        callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
-                                    } else { //S'il n'y a pas erreur
-
-                                        //On vérifie s'il y a des résultat renvoyé
-                                        if (result) {
-                                            var type_users = require("./TypeUsers");
-
-                                            type_users.initialize(db)
-                                            type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
-
-                                                var code = require("./Code");
-
-                                                code.initialize(db);
-                                                code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
-                                                    if (isGenerate) {
-                                                        sendCode(resultWithCode, (isSend, message, resultSend) => {
-                                                            if (isSend) {
-                                                                callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
-                                                            } else {
-                                                                callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
-                                                            }
-                                                        })
-                                                    } else {
-                                                        callback(true, "Demandé un nouveau code", resultWithTest)
-                                                    }
+        if (PSWD_REGEX.test(newUser.password)) {
+            //On commence par crypter le mot de passe        
+            var valeur_pwd = "Beniragi" + newUser.password + "jach";
+    
+            bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
+    
+                if (errHash) { //Si une erreure survient lors du hashage du mot de passe
+                    callback(false, "Une erreur est survenue lors du hashage du mot de passe : " + errHash);
+                } else { //Si non le mot de passe a été bien hashé
+    
+                    newUser.password = hashePwd;
+    
+                    testEmail(newUser, (isNotExist, message, result) => {
+                        if (isNotExist) {
+                            let type_users = require("./TypeUsers");
+    
+                            type_users.initialize(db);
+                            type_users.findOne(newUser.id_type, (isFound, messageType, resultType) => {
+                                if (isFound) {
+                                    newUser.id_type = "" + resultType._id;
+                                    //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
+                                    collection.value.insertOne(newUser, (err, result) => {
+    
+                                        //On test s'il y a erreur
+                                        if (err) {
+                                            callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
+                                        } else { //S'il n'y a pas erreur
+    
+                                            //On vérifie s'il y a des résultat renvoyé
+                                            if (result) {
+                                                var type_users = require("./TypeUsers");
+    
+                                                type_users.initialize(db)
+                                                type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+    
+                                                    var code = require("./Code");
+    
+                                                    code.initialize(db);
+                                                    code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
+                                                        if (isGenerate) {
+                                                            sendCode(resultWithCode, (isSend, message, resultSend) => {
+                                                                if (isSend) {
+                                                                    callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                                } else {
+                                                                    callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                                }
+                                                            })
+                                                        } else {
+                                                            callback(true, "Demandé un nouveau code", resultWithTest)
+                                                        }
+                                                    })
                                                 })
-                                            })
-
-                                        } else { //Si non l'etat sera false et on envoi un message
-                                            callback(false, "Désolé, l'utilisateur non enregistrer")
+    
+                                            } else { //Si non l'etat sera false et on envoi un message
+                                                callback(false, "Désolé, l'utilisateur non enregistrer")
+                                            }
                                         }
-                                    }
-                                })
-                            } else {
-                                callback(false, messageType)
-                            }
-                        })
-                    } else {
-                        callback(false, message)
-                    }
-                })
-
-            }
-        })
+                                    })
+                                } else {
+                                    callback(false, messageType)
+                                }
+                            })
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+    
+                }
+            })
+            
+        } else {
+            callback(false, "Le mot de passe doit comprendre entre 4 et 8 chiffres et inclure au moins un chiffre numérique.")
+        }
     } catch (exception) {
-
+        callback(false, "Une exception a été lévée lors de l'inscription : " +err)
     }
 }
 
@@ -119,6 +127,7 @@ function testEmail(user, callback) {
     }
 }
 
+//Fonction d'envoi du code d'activation
 function sendCode(account, callback) {
 
     const output = `<!DOCTYPE html>
@@ -1347,6 +1356,7 @@ module.exports.smartSearch = (objet, callback) => {
     }
 }
 
+//Module permettant de trouver un user à partir de son adresse e-mail
 module.exports.findOneByEmail = (email, callback) => {
     try {
         if (EMAIL_REGEX.test(email)) {

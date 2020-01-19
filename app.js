@@ -33,8 +33,10 @@ var skillsRouter = require('./routes/Skills');
 var notificationRouter = require('./routes/Notification');
 
 //For admin
+var AdminRouter = require("./routes/admin/Admin");
 var jobsAdminRouter = require("./routes/admin/Jobs");
 var typeUsersAdminRouter = require("./routes/admin/TypeUsers");
+var usersAdminRouter = require("./routes/admin/Users");
 
 var app = express();
 
@@ -68,8 +70,10 @@ app.use('/favoris', favorisRouter);
 app.use('/skills', skillsRouter);
 
 //For admin
+app.use('/admin', AdminRouter);
 app.use('/admin/jobs', jobsAdminRouter);
 app.use('/admin/type_users', typeUsersAdminRouter);
+app.use('/admin/users', usersAdminRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
