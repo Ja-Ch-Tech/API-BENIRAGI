@@ -451,11 +451,13 @@ module.exports.gets = (id_employer, callback) => {
                                 users.getInfosForFreelancer(resultAggr[index], (isGet, message, resultWithDetails) => {
                                     outFreelancer++;
                                     if (isGet) {
-                                        var feedBack = getItemForFeedback(resultWithDetails.feedBacks, resultWithDetails.id_viewer);
+                                        if (resultWithDetails && resultWithDetails.feedBacks) {
+                                            var feedBack = getItemForFeedback(resultWithDetails.feedBacks, resultWithDetails.id_viewer);
 
-                                        delete resultWithDetails.feedBacks;
+                                            delete resultWithDetails.feedBacks;
 
-                                        resultWithDetails.thisFeedBack = feedBack;
+                                            resultWithDetails.thisFeedBack = feedBack;
+                                        }
 
                                         listOut.push({
                                             infos: resultWithDetails,

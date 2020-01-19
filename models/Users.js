@@ -3,7 +3,8 @@ var db = require("./db"),
     nodemailer = require("nodemailer"),
     jwt = require("jsonwebtoken");
 
-const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e";
+const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
+    EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 var collection = {
     value: null
@@ -91,7 +92,7 @@ module.exports.register = (newUser, callback) => {
 //Pour tester l'adresse e-mail
 function testEmail(user, callback) {
     if (user.email) {
-        if (/^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z]{2,6}$/i.test(user.email)) {
+        if (EMAIL_REGEX.test(user.email)) {
             collection.value.aggregate([
                 {
                     "$match": {
@@ -1348,7 +1349,7 @@ module.exports.smartSearch = (objet, callback) => {
 
 module.exports.findOneByEmail = (email, callback) => {
     try {
-        if (/^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z]{2,6}$/i.test(email)) {
+        if (EMAIL_REGEX.test(email)) {
             collection.value.aggregate([
                 {
                     "$match": {
