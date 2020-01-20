@@ -200,5 +200,85 @@ module.exports = {
         } catch (exception) {
             callback(false, "Une exception a été lévée lors de la récupération des infos du user : " + exception)
         }
+    },
+
+    /**
+     * Module d'activation ou désactivation de l'utilisateur
+     * @param {String} id
+     * @param {Function} callback
+     */
+    toggleUser(objet, callback) {
+        try {
+            admin.initialize(db);
+
+            admin.isAdmin(objet.id_admin, (isTrue, message, resultTest) => {
+                if (isTrue) {
+                    findOneById(objet.id_user, (isFound, message, result) => {
+                        if (isFound) {
+                            var filter = {
+                                    "_id": result._id
+                                },
+                                update = {
+                                    "$set": {
+                                        "flag": result.flag == true ? false : true
+                                    }
+                                };
+
+                            collection.value.updateOne(filter, update, (err, resultUp) => {
+                                if (err) {
+                                    callback(false, "Une erreur est survenue lors de la mise à jour du flag : " +err)
+                                } else {
+                                    if (resultUp) {
+                                        callback(true, "La mise à jour du flag est fait", resultUp)
+                                    } else {
+                                        callback(false, "Aucune mise à jour")
+                                    }
+                                }
+                            })
+                        } else {
+                            callback(false, message)
+                        }
+                    })        
+                } else {
+                    callback(false, message)
+                }
+            })
+            
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de la mise à jour du flag : " + exception)
+        }
     }
+}
+
+/**
+ * La recherche d'un utilisateur via son identifiant
+ * @param {String} id 
+ * @param {Function} callback 
+ */
+const findOneById = (id, callback) => {
+    collection.value.aggregate([
+        {
+            "$match": {
+                "_id": require("mongodb").ObjectId(id)
+            }
+        }
+    ]).toArray((err, resultAggr) => {
+        if (err) {
+            callback(false, "Une erreur de recherche de type : " + err)
+        } else {
+            if (resultAggr.length > 0) {
+
+                type.initialize(db);
+                type.getTypeForUser(resultAggr[0], (isGet, message, resultWithType) => {
+                    if (isGet) {
+                        callback(true, message, resultWithType)
+                    } else {
+                        callback(false, "Pas de type défini, ça nous impossible de vous donner les détails")
+                    }
+                })
+            } else {
+                callback(false, "Ce user n'existe pas ou n'est pas autorisé")
+            }
+        }
+    })
 }
