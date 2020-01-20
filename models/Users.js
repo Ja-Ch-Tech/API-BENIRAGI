@@ -1587,3 +1587,39 @@ module.exports.resetPassword = (objet, callback) => {
         
     }
 }
+
+//Module permettant de certifié un freelancer, un module qui ne doit pas être utilisé côté client tout est gérer un interne
+module.exports.setCertificate = (objet, callback) => {
+    try {
+        this.isEmployer(objet.id_user, (isTrue, message, resultTest) => {
+            if (!isTrue) {
+                delete objet.id_user;
+
+                var filter = {
+                        "_id": resultTest._id
+                    },
+                    update = {
+                        "$set": {
+                            "certificate": objet
+                        }
+                    };
+
+                collection.value.updateOne(filter, update, (err, resultUp) => {
+                    if (err) {
+                        callback(false, "Une erreur lors de la certification du freelancer : " + err)
+                    } else {
+                        if (resultUp) {
+                            callback(true, "Le système de certification lui accorde sa certification de bon freelancer", resultUp)
+                        } else {
+                            callback(false, "Aucune mise à jour")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une erreur lors de la certification du freelancer : " + err)
+    }
+}

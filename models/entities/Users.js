@@ -75,3 +75,11 @@ module.exports.HourlyRate = function HourlyRate(id_user) {
         rate: String
     }
 }
+
+module.exports.Certificate = function Certificate(id_user) {
+    return {
+        id_user: id_user,
+        certified: true,
+        certified_at: new Date()
+    }
+}

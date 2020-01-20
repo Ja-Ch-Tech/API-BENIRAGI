@@ -33,7 +33,13 @@ module.exports.evaluate = (newEvaluate, callback) => {
                                 callback(false, "Une erreur lors de l'insertion de son evaluation : " + err)
                             } else {
                                 if (result) {
-                                    callback(true, "La note est enregister", result.ops[0])
+                                    this.countGoodNoteAndAverageForCertified(result.ops[0].id_freelancer, (isCertified, message, resultCertified) => {
+                                        if (isCertified) {
+                                            callback(true, message, resultCertified)
+                                        } else {
+                                            callback(true, "La note est enregister", result.ops[0])
+                                        }
+                                    })
                                 } else {
                                     callback(false, "Aucun enreg.")
                                 }
@@ -399,5 +405,70 @@ module.exports.getAverageInTime = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exceptiona a été lévée lors de la moyenne de inTime : " + exception)
+    }
+}
+
+//Module implémentant l'algorithme de certification de compte
+module.exports.countGoodNoteAndAverageForCertified = (id_freelancer, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": id_freelancer
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$id_freelancer",
+                    "average": {
+                        "$avg": "$note"
+                    },
+                    "data": {
+                        "$push": {
+                            "note": "$note"
+                        }
+                    }
+                }
+            },
+            {
+                "$unwind": "$data"
+            },
+            {
+                "$match": {
+                    "average": {"$gte": 3.75},
+                    "data.note": { "$gte": 3.75}
+                }
+            },
+            {
+                "$count": "nbre"
+            },
+            {
+                "$match": {
+                    "nbre": {"$gte": 10}
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de l'application de l'algorithme de certification : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    //Début de certification
+                    var users = require("./Users"),
+                        entity = require("./entities/Users").Certificate(id_freelancer);
+
+                    users.setCertificate(entity, (isSet, message, result) => {
+                        if (isSet) {
+                            callback(true, "Suivant l'algorithme de certification, nous avons le bonheur de vous annoncé l'atteinte du quotat nécessaire à la certification de votre compte", result)
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+                } else {
+                    callback(false, "Vous n'avez pas atteint le quotat de l'algorithme")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de l'application de l'algorithme de certification : " + exception)
     }
 }

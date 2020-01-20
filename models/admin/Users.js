@@ -247,6 +247,36 @@ module.exports = {
         } catch (exception) {
             callback(false, "Une exception a été lévée lors de la mise à jour du flag : " + exception)
         }
+    },
+
+    /**
+     * Certification manuel d'un freelancer
+     * @param {Object} objet 
+     * @param {Fucntion} callback 
+     */
+    certifiedFreelancer(objet, callback) {
+        try {
+            admin.initialize(db);
+
+            admin.isAdmin(objet.id_admin, (isTrue, message, resultTest) => {
+                if (isTrue) {
+                    users.initialize(db);
+
+                    users.setCertificate(objet, (isSet, message, result) => {
+                        if (isSet) {
+                            callback(true, "L'administration a procédé à votre certification manuellement", result)
+                        } else {
+                            callback(false, "La certification a échoué")
+                        }
+                    })        
+                } else {
+                    callback(false, message)
+                }
+            })
+            
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de la certification manuelle du freelancer : " +err)
+        }
     }
 }
 

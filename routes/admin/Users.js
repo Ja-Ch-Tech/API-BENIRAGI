@@ -62,4 +62,19 @@ router.get('/details/:id_admin/:id_user', (req, res) => {
     })
 })
 
+//Route permettant la certification manuel de l'administrateur
+router.post('/certified/:id_admin/:id_freelancer', (req, res) => {
+    var entity = require("../../models/entities/Users").Certificate(req.params.id_freelancer);
+
+    entity.id_admin = req.params.id_admin;
+
+    model.certifiedFreelancer(entity, (isCertified, message, result) => {
+        objetRetour.getEtat = isCertified;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;
