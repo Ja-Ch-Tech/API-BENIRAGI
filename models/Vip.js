@@ -1,5 +1,9 @@
 var db = require("./db");
 
+var collection = {
+    value: null
+}
+
 module.exports.initialize = (db) => {
     collection.value = db.get().collection("VIP");
 }

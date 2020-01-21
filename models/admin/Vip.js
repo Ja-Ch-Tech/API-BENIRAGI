@@ -34,7 +34,7 @@ module.exports = {
                     findOneByIdAndNotTreat(objet.id_vip, (isFound, message, resultFound) => {
                         if (isFound) {
                             var filter = {
-                                    "_id": resultFound._id    
+                                    "_id": resultFound._id  
                                 },
                                 update = {
                                     "$set": {
@@ -48,7 +48,7 @@ module.exports = {
                                     callback(false, "Une erreur lors de la mise à jour de la reponse accordé à la demande : " +err)
                                 } else {
                                     if (resultUp) {
-                                        callback(true, "La reponse de l'administration a été ")
+                                        callback(true, "La reponse de l'administration a été renvoyé", resultUp)
                                     } else {
                                         callback(false, "Aucune mise à jour")                
                                     }
@@ -68,6 +68,11 @@ module.exports = {
     }
 }
 
+/**
+ * Recherche la demande de VIP qui si celui-ci n'a pas déjà été traité
+ * @param {String} id 
+ * @param {Function} callback 
+ */
 const findOneByIdAndNotTreat = (id, callback) => {
     collection.value.aggregate([
         {
@@ -82,9 +87,9 @@ const findOneByIdAndNotTreat = (id, callback) => {
             callback(false, "Une erreur est survenue lors de la recherche d'une demande VIP : " +err)
         } else {
             if (resultAggr.length > 0) {
-                callback(true, "La demande à été trouvé")
+                callback(true, "La demande à été trouvé", resultAggr[0])
             } else {
-                callback(false, "Aucune demande VIP ne porte cet lidentitifiant")
+                callback(false, "Aucune demande VIP ne porte cet lidentitifiant ou à déjà trouvé une reponse")
             }
         }
     })

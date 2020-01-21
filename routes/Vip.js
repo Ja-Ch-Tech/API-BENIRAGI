@@ -6,7 +6,7 @@ var db = require("../models/db"),
 
 //Route permettant la demande de passer son compte en VIP
 router.post('/become', (req, res) => {
-    var entity = require("../models/entities/Vip").VIP(req.body.id_freelancer, parseInt(req.body.duration)),
+    var entity = require("../models/entities/Vip").VIP(req.body.id_freelancer, parseInt(req.body.duration) ? parseInt(req.body.duration) : 1),
         objetRetour = require("./ObjetRetour").ObjetRetour();
 
     model.initialize(db);
