@@ -1,12 +1,6 @@
 //Les importations des modules supplementaires
 var db = require("../db"),
-    admin = require("./Admin"),
-    users = require("../Users"),
-    type = require("../TypeUsers"),
-    media = require("../Media"),
-    town = require("../Town"),
-    favoris = require("../Favoris"),
-    skills = require("../Skills");
+    admin = require("./Admin");
 
 var collection = {
     value: null

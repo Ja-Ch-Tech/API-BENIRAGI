@@ -21,7 +21,15 @@ module.exports.becomeVIP = (newVIP, callback) => {
                         callback(false, "Une erreur est survenue lors de la passation de la demande de devenir un VIP : " +err)
                     } else {
                         if (result) {
-                            callback(true, "Votre demande a été envoyé", result.ops[0])
+                            var entity = require("./entities/Notification").VIP(result.ops[0].id_freelancer),
+                                notifier = require("./Notification");
+
+                            notifier.initialize(db);
+                            //Cette fonction ici est utilisé pour l'envoi des notification à l'admin
+                            notifier.sendNotificationOffer(entity, (isSend, message, result) => {
+                                callback(true, "Votre demande a été envoyé", result.ops[0])
+                            });
+                            
                         } else {
                             callback(false, "Aucune insertion d'un VIP")
                         }
