@@ -16,25 +16,32 @@ module.exports.becomeVIP = (newVIP, callback) => {
         users.initialize(db);
         users.isEmployer(newVIP.id_freelancer, (isTrue, message, result) => {
             if (!isTrue) {
-                collection.value.insertOne(newVIP, (err, result) => {
-                    if (err) {
-                        callback(false, "Une erreur est survenue lors de la passation de la demande de devenir un VIP : " +err)
-                    } else {
-                        if (result) {
-                            var entity = require("./entities/Notification").VIP(result.ops[0].id_freelancer),
-                                notifier = require("./Notification");
+                this.testingExists(newVIP.id_freelancer, (isTrue, message, resultTest) => {
+                    if (isTrue) {
+                        collection.value.insertOne(newVIP, (err, result) => {
+                            if (err) {
+                                callback(false, "Une erreur est survenue lors de la passation de la demande de devenir un VIP : " + err)
+                            } else {
+                                if (result) {
+                                    var entity = require("./entities/Notification").VIP(result.ops[0].id_freelancer),
+                                        notifier = require("./Notification");
 
-                            notifier.initialize(db);
-                            //Cette fonction ici est utilisé pour l'envoi des notification à l'admin
-                            notifier.sendNotificationOffer(entity, (isSend, message, result) => {
-                                callback(true, "Votre demande a été envoyé", result.ops[0])
-                            });
-                            
-                        } else {
-                            callback(false, "Aucune insertion d'un VIP")
-                        }
+                                    notifier.initialize(db);
+                                    //Cette fonction ici est utilisé pour l'envoi des notification à l'admin
+                                    notifier.sendNotificationOffer(entity, (isSend, message, resultNotifier) => {
+                                        callback(true, "Votre demande a été envoyé", result.ops[0])
+                                    });
+
+                                } else {
+                                    callback(false, "Aucune insertion d'un VIP")
+                                }
+                            }
+                        })
+                    } else {
+                        callback(false, message)
                     }
                 })
+                
             } else {
                 callback(false, message)
             }
@@ -102,5 +109,34 @@ module.exports.getVIP = (limit, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la recherche de la liste des VIP : " + exception)
+    }
+}
+
+module.exports.testingExists = (id, callback) => {
+    try {
+        
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": "" + id,
+                    "flag": true,
+                    "accept": {"$exists": 1},
+                    "accept.response": true,
+                    "dates.end": { "$gte" : new Date().getTime() }
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du test de l'existance d'une demande en cours : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(false, "Une demande est en cours d'utilisation")
+                } else {
+                    callback(true, "Aucune demande en cours d'utilisation")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du test de l'existance d'une demande en cours : " + exception)
     }
 }

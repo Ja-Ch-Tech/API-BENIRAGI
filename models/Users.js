@@ -719,11 +719,20 @@ module.exports.getInfos = (objet, callback) => {
 
                                                         view.initialize(db);
                                                         view.create(entity, (isCreated, message, result) => {
-                                                            //Suppression de datas en trop
-                                                            delete resultWithFavorite._id;
-                                                            delete resultWithFavorite.password;
+                                                            
+                                                            var vip = require("./Vip");
 
-                                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+                                                            vip.initialize(db);
+                                                            vip.testingExists(resultWithFavorite._id, (isTrue, message, resultTest) => {
+                                                                resultWithFavorite.isBoost = isTrue == false ? true : false;
+
+                                                                //Suppression de datas en trop
+                                                                delete resultWithFavorite._id;
+                                                                delete resultWithFavorite.password;
+
+                                                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+
+                                                            })
                                                         })
                                                     }
                                                 })
@@ -735,11 +744,20 @@ module.exports.getInfos = (objet, callback) => {
 
                                             view.initialize(db);
                                             view.create(entity, (isCreated, message, result) => {
-                                                //Suppression de datas en trop
-                                                delete resultWithFavorite._id;
-                                                delete resultWithFavorite.password;
+                                                
+                                                var vip = require("./Vip");
 
-                                                callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+                                                vip.initialize(db);
+                                                vip.testingExists(resultWithFavorite._id, (isTrue, message, resultTest) => {
+                                                    resultWithFavorite.isBoost = isTrue == false ? true : false;
+
+                                                    //Suppression de datas en trop
+                                                    delete resultWithFavorite._id;
+                                                    delete resultWithFavorite.password;
+
+                                                    callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite)
+
+                                                })
                                             })
                                         }
                                     })

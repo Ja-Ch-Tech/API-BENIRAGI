@@ -69,7 +69,7 @@ module.exports.getStats = (objet, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_freelancer": objet._id
+                    "id_freelancer": objet.id_freelancer
                 }
             },
             {

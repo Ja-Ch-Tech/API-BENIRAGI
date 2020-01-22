@@ -65,7 +65,7 @@ module.exports.evaluate = (newEvaluate, callback) => {
                                 "$set": {
                                     "note": parseInt(newEvaluate.note),
                                     "message": newEvaluate.message && newEvaluate.message.trim(" ") ? newEvaluate.message : resultAggr[0].message,
-                                    "inTime": newEvaluate.inTime ? true : false,
+                                    "inTime": newEvaluate.inTime == true ? 1 : 0,
                                 }
                             };
 
