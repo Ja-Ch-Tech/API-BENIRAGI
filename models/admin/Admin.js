@@ -76,7 +76,7 @@ module.exports = {
                 if (err) {
                     callback(false);
                 } else {
-                    return resultAggr.length > 0 ? callback(true) : callback(false);
+                    resultAggr.length > 0 ? callback(true) : callback(false);
                 }
             })
         } catch (exception) {
