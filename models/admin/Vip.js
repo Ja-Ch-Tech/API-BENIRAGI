@@ -1,6 +1,7 @@
 //Les importations des modules supplementaires
 var db = require("../db"),
-    admin = require("./Admin");
+    admin = require("./Admin"),
+    users = require("../Users");
 
 var collection = {
     value: null
@@ -58,6 +59,69 @@ module.exports = {
             })
         } catch (exception) {
             callback(false, "Une exception a été lévée lors de la mise à jour de la reponse accordé à la demande : " + exception)
+        }
+    },
+
+    /**
+     * Récupération des nouvelles demande de VIP
+     * @param {Object} objet 
+     * @param {Function} callback 
+     */
+    getNewRequest(objet, callback) {
+        try {
+            admin.initialize(db);
+            admin.isAdmin(objet.id_admin, (isTrue, message, result) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "accept": {"$exists": 0}
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la récupération des nouvelles demande : " +err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                var outVip = 0,
+                                    listOut = [];
+
+                                users.initialize(db);
+                                for (let index = 0; index < resultAggr.length; index++) {
+                                    var format = {
+                                        "_id": resultAggr[index].id_freelancer
+                                    };
+
+                                    users.getInfosForFreelancer(format, (isGet, message, resultWithData) => {
+                                        outVip++;
+                                        if (isGet) {
+                                            listOut.push({
+                                                infos: resultWithData, 
+                                                id_vip: resultAggr[index]._id, 
+                                                created_at: resultAggr[index].created_at
+                                            })
+                                        }
+
+                                        if (outVip == resultAggr.length) {
+                                            if (listOut.length > 0) {
+                                                callback(true, "La liste des demandes VIP", listOut)
+                                            } else {
+                                                callback(false, "Aucun utilisateurs valide")
+                                            }
+                                        }
+                                    })
+                                }
+                            } else {
+                                callback(false, "Aucune nouvelle demande")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, message)
+                }
+            })
+        } catch (exception) {
+            
         }
     }
 }
