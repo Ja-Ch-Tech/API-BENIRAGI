@@ -82,6 +82,66 @@ module.exports = {
         } catch (exception) {
             callback(false)
         }
+    },
+    
+    /**
+     * Le module permettant de connecter un administrateur
+     * @param {Object} objet 
+     * @param {Function} callback 
+     */
+    login(objet, callback) {
+        try {
+            collection.value.aggregate([{
+                "$match": {
+                    "admin": objet.admin
+                }
+            },
+            {
+                "$project": {
+                    "password": 1
+                }
+            }
+            ]).toArray(function (errAggr, resultAggr) {
+
+                if (errAggr) {
+                    callback(false, "Une erreur est survenue lors de la connexion de l'utilisateur : " + errAggr);
+                } else {
+
+                    if (resultAggr.length > 0) {
+
+                        var clearPwd = "AdminBeni" + objet.password + "ragiService";
+
+                        bcrypt.compare(clearPwd, resultAggr[0].password, function (errCompareCrypt, resultCompareCrypt) {
+
+
+                            if (errCompareCrypt) {
+                                callback(false, "Une erreur est survenue lors du décryptage du mot de passe : " + errCompareCrypt);
+                            } else {
+                                if (resultCompareCrypt) {
+
+                                    var id_admin = "" + resultAggr[0]._id,
+                                        username = resultAggr[0].admin,
+                                        objetRetour = {
+                                            "id_admin": id_admin,
+                                            "username": username
+                                        };
+
+                                    callback(true, "Vous êtes connectés", objetRetour)
+
+                                } else {
+                                    callback(false, "Le mot de passe est incorrect");
+                                }
+                            }
+                        });
+
+                    } else {
+                        callback(false, "Username incorrect");
+                    }
+                }
+            })
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de la connexion du user : " + exception);
+        }
     }
 }
 
