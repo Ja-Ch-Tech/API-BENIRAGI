@@ -38,4 +38,20 @@ router.get('/new/:id_admin', (req, res) => {
         res.status(200).send(objetRetour);
     })
 })
+
+//Route permettant la récupération de tous les demandes
+router.get('/getAll/:id_admin', (req, res) => {
+    var objet = {
+        "id_admin": req.params.id_admin
+    };
+
+    model.initialize(db);
+    model.getAnyVIPRequest(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
 module.exports = router

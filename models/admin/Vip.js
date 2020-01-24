@@ -1,6 +1,7 @@
 //Les importations des modules supplementaires
 var db = require("../db"),
     admin = require("./Admin"),
+    usersAdmin = require("./Users"),
     users = require("../Users");
 
 var collection = {
@@ -123,6 +124,82 @@ module.exports = {
         } catch (exception) {
             
         }
+    },
+
+    /**
+     * Récupère tous les demandes VIP existant
+     * @param {Object} objet 
+     * @param {Function} callback 
+     */
+    getAnyVIPRequest(objet, callback) {
+        try{
+            admin.initialize(db);
+            admin.isAdmin(objet.id_admin, (isTrue, message, result) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {}
+                        },
+                        { "$sort": {"created_at": -1}}
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la récupération des demandes VIP : " +err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                var outVip = 0,
+                                    listOut = [];
+
+                                usersAdmin.initialize(db);
+                                for (let index = 0; index < resultAggr.length; index++) {
+                                    var format = {
+                                        "id_user": resultAggr[0].id_freelancer,
+                                        "id_viewer": resultAggr[0].id_freelancer
+                                    }
+
+                                    usersAdmin.getInfosForAdmin(format, (isGet, message, resultWithData) => {
+                                        outVip++;
+                                        if (isGet) {
+                                            var infosUser = {
+                                                "email": resultWithData.email,
+                                                "identity": resultWithData.identity ? resultWithData.identity : null
+                                            },
+                                            out = {
+                                                infosUser,
+                                                infosVIP: {
+                                                    id_vip: resultAggr[index]._id,
+                                                    dates: {
+                                                        begin: resultAggr[index].accept ? getBeginDate(resultAggr[index].dates) : null,
+                                                        end: resultAggr[index].accept ? new Date(resultAggr[index].dates.end).toISOString() : null
+                                                    },
+                                                    action: resultAggr[index].accept ? (resultAggr[index].accept.response == true ? (resultAggr[index].dates.end >= new Date().getTime() ? "stop": "Renouveler"): null): "Donner accord",
+                                                    status: resultWithData.flag == true ? resultWithData.certicate && resultWithData.certicate.certified ? "Certifié" : null: "Arrêter"
+                                                }
+                                            }
+
+                                            listOut.push(out)
+                                        }
+
+                                        if (outVip == resultAggr.length) {
+                                            if (listOut.length > 0) {
+                                                callback(true, "les VIP", listOut)
+                                            } else {
+                                                callback(false, "Aucune certification que les utilisateurs aient existé")
+                                            }
+                                        }
+                                    })
+                                }
+                            } else {
+                                callback(false, "Aucune demande ici")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, message)
+                }
+            })
+        }catch(exception) {
+
+        }
     }
 }
 
@@ -151,4 +228,12 @@ const findOneByIdAndNotTreat = (id, callback) => {
             }
         }
     })
+}
+
+/**
+ * Permet de récupérer sa date de début
+ * @param {Object} objet 
+ */
+const getBeginDate = (objet) => {
+    return new Date(objet.end - parseInt(objet.duration) * 30 * 24 * 60 * 60 * 1000)
 }
