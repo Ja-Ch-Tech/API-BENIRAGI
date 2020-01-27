@@ -54,4 +54,22 @@ router.get('/getAll/:id_admin', (req, res) => {
         res.status(200).send(objetRetour);
     })
 })
+
+//Permet de renouveller ou arrêter
+router.get('/toggleResponse/:id_admin/:id_vip', (req, res) => {
+    var objet = {
+        id_admin: req.params.id_admin,
+        id_vip: req.params.id_vip
+    };
+
+    model.initialize(db);
+    model.toggleResponse(objet, (isOkay, message, result) => {
+        objetRetour.getEtat = isOkay;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour)
+    })
+});
+
 module.exports = router

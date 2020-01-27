@@ -171,7 +171,7 @@ module.exports = {
                                                         begin: resultAggr[index].accept ? getBeginDate(resultAggr[index].dates) : null,
                                                         end: resultAggr[index].accept ? new Date(resultAggr[index].dates.end).toISOString() : null
                                                     },
-                                                    action: resultAggr[index].accept ? (resultAggr[index].accept.response == true ? (resultAggr[index].dates.end >= new Date().getTime() ? "stop": "Renouveler"): null): "Donner accord",
+                                                    action: resultAggr[index].accept ? (resultAggr[index].accept.response == true ? (resultAggr[index].dates.end >= new Date().getTime() ? "stop" : "Renouveler") : "Renouveler"): "Donner accord",
                                                     status: resultWithData.flag == true ? resultWithData.certicate && resultWithData.certicate.certified ? "Certifié" : null: "Arrêter"
                                                 }
                                             }
@@ -199,6 +199,60 @@ module.exports = {
             })
         }catch(exception) {
 
+        }
+    },
+
+    /**
+     * L'arrêt définitif des 
+     * @param {Object} objet 
+     * @param {Function} callback 
+     */
+    toggleResponse(objet, callback) {
+        try {
+            admin.initialize(db);
+            admin.isAdmin(objet.id_admin, (isTrue, message, result) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "_id": require("mongodb").ObjectId(objet.id_vip),
+                                "accept": {"$exists": 1}
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur lors de la recherche du vip : " +err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                var filter = {
+                                        "_id": resultAggr[0]._id
+                                    },
+                                    update = {
+                                        "$set": {
+                                            "accept": { response: resultAggr[0].accept.response == true ? false : true, id_admin: objet.id_admin },
+                                            "dates.end": new Date().getTime() + parseInt(resultAggr[0].dates.duration) * 30 * 24 * 60 * 60 * 1000
+                                        }
+                                    };
+
+                                collection.value.updateOne(filter, update, (err, resultUp) => {
+                                    if (err) {
+                                        callback(false, "Une erreur est survenue lors de l'arrêt de la demande : " + err)
+                                    } else {
+                                        callback(true, "La demande a été arrêter", resultUp)
+                                    }
+                                })
+                            } else {
+                                callback(false, "Aucune données")
+                            }
+                        }
+                    })
+                   
+                } else {
+                    callback(false, message)
+                }
+            })
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de l'arrêt de la demande : " + exception)
         }
     }
 }
