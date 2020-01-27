@@ -34,7 +34,7 @@ module.exports = {
                                 },
                                 update = {
                                     "$set": {
-                                        "accept": { response: objet.response, id_admin: objet.id_admin},
+                                        "accept": { response: objet.response == "true" ? true : false, id_admin: objet.id_admin},
                                         "dates.end": new Date().getTime() + parseInt(resultFound.dates.duration) * 30 * 24 * 60 * 60 * 1000
                                     }
                                 };
@@ -152,8 +152,8 @@ module.exports = {
                                 usersAdmin.initialize(db);
                                 for (let index = 0; index < resultAggr.length; index++) {
                                     var format = {
-                                        "id_user": resultAggr[0].id_freelancer,
-                                        "id_viewer": resultAggr[0].id_freelancer
+                                        "id_user": resultAggr[index].id_freelancer,
+                                        "id_viewer": resultAggr[index].id_freelancer
                                     }
 
                                     usersAdmin.getInfosForAdmin(format, (isGet, message, resultWithData) => {
