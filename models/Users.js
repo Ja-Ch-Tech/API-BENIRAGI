@@ -19,81 +19,78 @@ module.exports.initialize = (db) => {
 module.exports.register = (newUser, callback) => {
     try {
 
-        if (PSWD_REGEX.test(newUser.password)) {
-            //On commence par crypter le mot de passe        
-            var valeur_pwd = "Beniragi" + newUser.password + "jach";
-    
-            bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
-    
-                if (errHash) { //Si une erreure survient lors du hashage du mot de passe
-                    callback(false, "Une erreur est survenue lors du hashage du mot de passe : " + errHash);
-                } else { //Si non le mot de passe a été bien hashé
-    
-                    newUser.password = hashePwd;
-    
-                    testEmail(newUser, (isNotExist, message, result) => {
-                        if (isNotExist) {
-                            let type_users = require("./TypeUsers");
-    
-                            type_users.initialize(db);
-                            type_users.findOne(newUser.id_type, (isFound, messageType, resultType) => {
-                                if (isFound) {
-                                    newUser.id_type = "" + resultType._id;
-                                    //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
-                                    collection.value.insertOne(newUser, (err, result) => {
-    
-                                        //On test s'il y a erreur
-                                        if (err) {
-                                            callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
-                                        } else { //S'il n'y a pas erreur
-    
-                                            //On vérifie s'il y a des résultat renvoyé
-                                            if (result) {
-                                                var type_users = require("./TypeUsers");
-    
-                                                type_users.initialize(db)
-                                                type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
-    
-                                                    var code = require("./Code");
-    
-                                                    code.initialize(db);
-                                                    code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
-                                                        if (isGenerate) {
-                                                            sendCode(resultWithCode, (isSend, message, resultSend) => {
-                                                                if (isSend) {
-                                                                    callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
-                                                                } else {
-                                                                    callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
-                                                                }
-                                                            })
-                                                        } else {
-                                                            callback(true, "Demandé un nouveau code", resultWithTest)
-                                                        }
-                                                    })
+        //On commence par crypter le mot de passe        
+        var valeur_pwd = "Beniragi" + newUser.password + "jach";
+
+        bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
+
+            if (errHash) { //Si une erreure survient lors du hashage du mot de passe
+                callback(false, "Une erreur est survenue lors du hashage du mot de passe : " + errHash);
+            } else { //Si non le mot de passe a été bien hashé
+
+                newUser.password = hashePwd;
+
+                testEmail(newUser, (isNotExist, message, result) => {
+                    if (isNotExist) {
+                        let type_users = require("./TypeUsers");
+
+                        type_users.initialize(db);
+                        type_users.findOne(newUser.id_type, (isFound, messageType, resultType) => {
+                            if (isFound) {
+                                newUser.id_type = "" + resultType._id;
+                                //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
+                                collection.value.insertOne(newUser, (err, result) => {
+
+                                    //On test s'il y a erreur
+                                    if (err) {
+                                        callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
+                                    } else { //S'il n'y a pas erreur
+
+                                        //On vérifie s'il y a des résultat renvoyé
+                                        if (result) {
+                                            var type_users = require("./TypeUsers");
+
+                                            type_users.initialize(db)
+                                            type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+
+                                                var code = require("./Code");
+
+                                                code.initialize(db);
+                                                code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
+                                                    if (isGenerate) {
+                                                        sendCode(resultWithCode, (isSend, message, resultSend) => {
+                                                            if (isSend) {
+                                                                callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                            } else {
+                                                                callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                            }
+                                                        })
+                                                    } else {
+                                                        callback(true, "Demandé un nouveau code", resultWithTest)
+                                                    }
                                                 })
-    
-                                            } else { //Si non l'etat sera false et on envoi un message
-                                                callback(false, "Désolé, l'utilisateur non enregistrer")
-                                            }
+                                            })
+
+                                        } else { //Si non l'etat sera false et on envoi un message
+                                            callback(false, "Désolé, l'utilisateur non enregistrer")
                                         }
-                                    })
-                                } else {
-                                    callback(false, messageType)
-                                }
-                            })
-                        } else {
-                            callback(false, message)
-                        }
-                    })
-    
-                }
-            })
-            
-        } else {
-            callback(false, "Le mot de passe doit comprendre entre 4 et 8 chiffres et inclure au moins un chiffre numérique.")
-        }
+                                    }
+                                })
+                            } else {
+                                callback(false, messageType)
+                            }
+                        })
+                    } else {
+                        callback(false, message)
+                    }
+                })
+
+            }
+        })
+
+
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de l'inscription : " +err)
+        callback(false, "Une exception a été lévée lors de l'inscription : " + err)
     }
 }
 
@@ -719,7 +716,7 @@ module.exports.getInfos = (objet, callback) => {
 
                                                         view.initialize(db);
                                                         view.create(entity, (isCreated, message, result) => {
-                                                            
+
                                                             var vip = require("./Vip");
 
                                                             vip.initialize(db);
@@ -744,7 +741,7 @@ module.exports.getInfos = (objet, callback) => {
 
                                             view.initialize(db);
                                             view.create(entity, (isCreated, message, result) => {
-                                                
+
                                                 var vip = require("./Vip");
 
                                                 vip.initialize(db);
@@ -1396,7 +1393,7 @@ module.exports.findOneByEmail = (email, callback) => {
                     }
                 }
             })
-        }else{
+        } else {
             callback(false, "Adresse e-mail non-conforme")
         }
     } catch (exception) {
@@ -1524,12 +1521,12 @@ function sendMailForForgetPassword(objet, callback) {
  * @param {Function} callback La fonction de retour 
  */
 function decodeToken(token, callback) {
-    jwt.verify(token, SIGN_TOKEN_SECRET, { expiresIn: '2h'}, (err, decode) => {
+    jwt.verify(token, SIGN_TOKEN_SECRET, { expiresIn: '2h' }, (err, decode) => {
         if (err) {
             if (err.name == 'NotBeforeError') {
                 callback(false, "Le token de l'activation a expiré")
             } else {
-                callback(false, "Une erreur est survenue lors du decodage du token : " +err)
+                callback(false, "Une erreur est survenue lors du decodage du token : " + err)
             }
         } else {
             var objet = {
@@ -1552,12 +1549,12 @@ module.exports.resetPassword = (objet, callback) => {
 
                         bcrypt.hash(clearPwd, 10, (err, hashed) => {
                             if (err) {
-                                callback(false, "Une erreur est survenue lors du hash du nouveau mot de passe : " +err)
+                                callback(false, "Une erreur est survenue lors du hash du nouveau mot de passe : " + err)
                             } else {
                                 objet.password = hashed;
                                 var filter = {
-                                        "_id": result._id
-                                    },
+                                    "_id": result._id
+                                },
                                     update = {
                                         "$set": {
                                             "password": objet.password
@@ -1566,7 +1563,7 @@ module.exports.resetPassword = (objet, callback) => {
 
                                 collection.value.updateOne(filter, update, (err, resultUp) => {
                                     if (err) {
-                                        callback(false, "Une erreur lors de la mise à jour du mot de passe : " +err)
+                                        callback(false, "Une erreur lors de la mise à jour du mot de passe : " + err)
                                     } else {
                                         if (resultUp) {
                                             var id_user = "" + result._id,
@@ -1602,7 +1599,7 @@ module.exports.resetPassword = (objet, callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -1614,8 +1611,8 @@ module.exports.setCertificate = (objet, callback) => {
                 delete objet.id_user;
 
                 var filter = {
-                        "_id": resultTest._id
-                    },
+                    "_id": resultTest._id
+                },
                     update = {
                         "$set": {
                             "certificate": objet
