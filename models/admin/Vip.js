@@ -77,8 +77,16 @@ module.exports = {
                     collection.value.aggregate([
                         {
                             "$match": {
-                                "accept": {"$exists": 0},
-                                "flag": true
+                                "flag": true,
+                                "$or": [
+                                    {"accept": {"$exists": 0}},
+                                    {
+                                        "$and": [
+                                            {"accept": {"$exists": 1}},
+                                            {"accept.response": false}
+                                        ]
+                                    }
+                                ]
                             }
                         }
                     ]).toArray((err, resultAggr) => {
@@ -232,8 +240,7 @@ module.exports = {
                                     update = {
                                         "$set": {
                                             "accept": { response: resultAggr[0].accept.response == true ? false : true, id_admin: objet.id_admin },
-                                            "dates.end": new Date().getTime() + parseInt(resultAggr[0].dates.duration) * 30 * 24 * 60 * 60 * 1000,
-                                            "flag": resultAggr[0].accept.response == true ? true : false
+                                            "dates.end": new Date().getTime() + parseInt(resultAggr[0].dates.duration) * 30 * 24 * 60 * 60 * 1000
                                         }
                                     };
 
@@ -270,8 +277,15 @@ const findOneByIdAndNotTreat = (id, callback) => {
         {
             "$match": {
                 "_id": require("mongodb").ObjectId(id),
-                "flag": true,
-                "accept": {"$exists": 0}
+                "$or": [
+                    { "accept": { "$exists": 0 } },
+                    {
+                        "$and": [
+                            { "accept": { "$exists": 1 } },
+                            { "accept.response": false }
+                        ]
+                    }
+                ]
             }
         }
     ]).toArray((err, resultAggr) => {

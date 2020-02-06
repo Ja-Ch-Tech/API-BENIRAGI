@@ -135,6 +135,7 @@ module.exports.getVIP = (limit, callback) => {
     }
 }
 
+//Permet de tester que la demande ait déjà été éxécuter
 module.exports.testingExists = (id, callback) => {
     try {
         
