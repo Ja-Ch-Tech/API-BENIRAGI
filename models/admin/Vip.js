@@ -35,7 +35,8 @@ module.exports = {
                                 update = {
                                     "$set": {
                                         "accept": { response: objet.response == "true" ? true : false, id_admin: objet.id_admin},
-                                        "dates.end": new Date().getTime() + parseInt(resultFound.dates.duration) * 30 * 24 * 60 * 60 * 1000
+                                        "dates.end": new Date().getTime() + parseInt(resultFound.dates.duration) * 30 * 24 * 60 * 60 * 1000,
+                                        "flag": false
                                     }
                                 };
 
@@ -76,7 +77,8 @@ module.exports = {
                     collection.value.aggregate([
                         {
                             "$match": {
-                                "accept": {"$exists": 0}
+                                "accept": {"$exists": 0},
+                                "flag": true
                             }
                         }
                     ]).toArray((err, resultAggr) => {
@@ -230,7 +232,8 @@ module.exports = {
                                     update = {
                                         "$set": {
                                             "accept": { response: resultAggr[0].accept.response == true ? false : true, id_admin: objet.id_admin },
-                                            "dates.end": new Date().getTime() + parseInt(resultAggr[0].dates.duration) * 30 * 24 * 60 * 60 * 1000
+                                            "dates.end": new Date().getTime() + parseInt(resultAggr[0].dates.duration) * 30 * 24 * 60 * 60 * 1000,
+                                            "flag": resultAggr[0].accept.response == true ? true : false
                                         }
                                     };
 

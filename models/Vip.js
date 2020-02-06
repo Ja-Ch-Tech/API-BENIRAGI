@@ -38,7 +38,30 @@ module.exports.becomeVIP = (newVIP, callback) => {
                             }
                         })
                     } else {
-                        callback(false, message)
+                        //callback(false, message)
+                        var filter = {
+                                "_id": resultTest._id
+                            },
+                            update = {
+                                "$set": {
+                                    "flag": true
+                                }
+                            };
+
+                        collection.value.updateOne(filter, update, (err, resultUp) => {
+                            if (err) {
+                                callback(false, "Une erreur est survenue lors de la demande de reconsidération de VIP : " +err)
+                            } else {
+                                var entity = require("./entities/Notification").VIP(resultTest.id_freelancer),
+                                    notifier = require("./Notification");
+
+                                notifier.initialize(db);
+                                //Cette fonction ici est utilisé pour l'envoi des notification à l'admin
+                                notifier.sendNotificationOffer(entity, (isSend, message, resultNotifier) => {
+                                    callback(true, "Votre demande a été envoyé", resultUp)
+                                });
+                            }
+                        })
                     }
                 })
                 
@@ -60,7 +83,7 @@ module.exports.getVIP = (limit, callback) => {
             {
                 "$match": {
                     "dates.end" : { "$gte" : new Date().getTime() },
-                    "flag": true,
+                    "flag": false,
                     "accept": { "$exists": 1},
                     "accept.response": true
                 }
@@ -118,11 +141,7 @@ module.exports.testingExists = (id, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_freelancer": "" + id,
-                    "flag": true,
-                    "accept": {"$exists": 1},
-                    "accept.response": true,
-                    "dates.end": { "$gte" : new Date().getTime() }
+                    "id_freelancer": "" + id
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -130,7 +149,8 @@ module.exports.testingExists = (id, callback) => {
                 callback(false, "Une erreur est survenue lors du test de l'existance d'une demande en cours : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(false, "Une demande est en cours d'utilisation")
+                    
+                    callback(false, "Une demande est en cours d'utilisation", resultAggr[0])
                 } else {
                     callback(true, "Aucune demande en cours d'utilisation")
                 }

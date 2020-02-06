@@ -721,7 +721,8 @@ module.exports.getInfos = (objet, callback) => {
 
                                                             vip.initialize(db);
                                                             vip.testingExists(resultWithFavorite._id, (isTrue, message, resultTest) => {
-                                                                resultWithFavorite.isBoost = isTrue;
+                                                                
+                                                                resultWithFavorite.isBoost = isTrue ? false : (isTrue == false ? (resultTest.flag ? false : resultTest.accept.response ? (resultTest.dates.end >= new Date().getDate() ? true : false) : false) : true);
 
                                                                 //Suppression de datas en trop
                                                                 delete resultWithFavorite._id;
