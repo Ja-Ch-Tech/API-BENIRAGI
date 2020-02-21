@@ -12,8 +12,8 @@ router.get('/', function (req, res, next) {
 
 
 aws.config.update({
-    secretAccessKey: 'nBoc9jxpATmxhcUb23lH3yPiLgpOIIQswYBsyCxY',
-    accessKeyId: 'AKIAJT4K77B5KRATXOMQ',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     region: 'us-east-2'
 });
 
@@ -31,9 +31,9 @@ var upload = multer({
     //fileFilter: filefilter,
     storage: multerS3({
         s3: s3,
-        bucket: 'beneragi-service',
+        bucket: process.env.S3_BUCKET,
         metadata: function (req, file, cb) {
-            cb(null, { fieldName: 'TESTING_METADATA' });
+            cb(null, { fieldName: 'TESTING_METADATA_FRDRCPETER' });
         },
         acl: 'public-read',
         key: function (req, file, cb) {
