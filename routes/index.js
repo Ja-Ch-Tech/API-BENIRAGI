@@ -31,7 +31,7 @@ var upload = multer({
     //fileFilter: filefilter,
     storage: multerS3({
         s3: s3,
-        bucket: process.env.S3_BUCKET,
+        bucket: process.env.S3_BUCKET_NAME,
         metadata: function (req, file, cb) {
             cb(null, { fieldName: 'TESTING_METADATA_FRDRCPETER' });
         },
