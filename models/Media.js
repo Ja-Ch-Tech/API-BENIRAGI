@@ -41,7 +41,7 @@ module.exports.findOneById = (id_media, callback) => {
                 callback(false, "Un erreur est survenue lors de la recherche du media : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(true, `Le media y est et c'est un ${resultAggr[0].for.toUpperCase()}`, resultAggr[0])
+                    callback(true, `Le media est créér`, resultAggr[0])
                 } else {
                     callback(false, "Ce media n'existe pas")
                 }
@@ -70,7 +70,7 @@ module.exports.getInfos = (objet, callback) => {
                         callback(true, message, resultWithJob)
                     })
                 } else {
-                    
+
                     var jobs = require("./Jobs");
 
                     jobs.initialize(db);
