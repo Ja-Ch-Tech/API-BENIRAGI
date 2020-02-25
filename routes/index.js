@@ -56,7 +56,7 @@ router.post('/file-upload', (req, res) => {
 
             entity.path = req.file.location;
             entity.size = req.file.size;
-            entity.for = req.body.for.toLowerCase();
+            //entity.for = req.body.for.toLowerCase();
 
             model.initialize(db);
             model.create(entity, (isCreated, message, result) => {
