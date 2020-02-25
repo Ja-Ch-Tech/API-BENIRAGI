@@ -190,7 +190,7 @@ module.exports.getDetails = (id, callback) => {
 
                                 media.initialize(db);
                                 media.findOneById(resultAggr[0].attachment, (isFound, message, resultWithAttachment) => {
-                                    if (condition) {
+                                    if (isFound) {
                                         result.attachment = resultWithAttachment;
                                         callback(true, message, result);
                                     } else {
