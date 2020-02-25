@@ -577,7 +577,7 @@ module.exports.setAvatar = (newAvatar, callback) => {
                 var media = require("./Media");
 
                 media.initialize(db);
-                media.findOneById(newAvatar.id_media, (isFound, message, resultMedia) => {
+                media.findOneById(newAvatar.id_avatar, (isFound, message, resultMedia) => {
                     if (isFound) {
                         var filter = {
                             "_id": result._id
@@ -721,7 +721,7 @@ module.exports.getInfos = (objet, callback) => {
 
                                                             vip.initialize(db);
                                                             vip.testingExists(resultWithFavorite._id, (isTrue, message, resultTest) => {
-                                                                
+
                                                                 resultWithFavorite.isBoost = isTrue ? false : (isTrue == false ? (resultTest.flag ? false : resultTest.accept.response ? (resultTest.dates.end >= new Date().getDate() ? true : false) : false) : true);
 
                                                                 //Suppression de datas en trop
