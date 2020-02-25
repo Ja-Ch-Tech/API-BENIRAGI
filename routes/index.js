@@ -67,7 +67,7 @@ router.post('/file-upload', (req, res) => {
                 res.status(200).send(objetRetour);
             })
         } else {
-            res.status(202).send({getEtat: false, getMessage: "Upload was not finished !"})
+            res.status(202).send({ getEtat: false, getMessage: "Upload was not finished !" })
         }
 
     })

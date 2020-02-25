@@ -684,6 +684,7 @@ module.exports.getInfos = (objet, callback) => {
                         if (isGet) {
                             var media = require("./Media");
 
+                            media.initialize(db);
                             media.getInfos(result, (isGet, message, resultWithMedia) => {
 
                                 var town = require("./Town");
@@ -1044,6 +1045,7 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                                     if (isGet) {
                                         var media = require("./Media");
 
+                                        media.initialize(db);
                                         media.getInfos(result, (isGet, message, resultWithMedia) => {
 
                                             var town = require("./Town");

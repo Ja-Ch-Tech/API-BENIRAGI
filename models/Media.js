@@ -55,9 +55,8 @@ module.exports.findOneById = (id_media, callback) => {
 //Récupération des infos supplémentaire
 module.exports.getInfos = (objet, callback) => {
     try {
-        if (objet.id_avatar) {
-            module.exports.findOneById(objet.id_avatar, (isFound, message, result) => {
-                delete objet.id_avatar;
+        if (objet.avatar && objet.avatar.id_avatar) {
+            this.findOneById(objet.avatar.id_avatar, (isFound, message, result) => {
 
                 if (isFound) {
                     delete result._id;
