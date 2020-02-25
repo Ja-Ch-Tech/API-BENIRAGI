@@ -92,7 +92,7 @@ module.exports.testOfferExist = (id_employer, id_freelancer, callback) => {
     ]).toArray((err, resultAggr) => {
         if (err) {
             callback(false, "Une erreur lors du test de l'offre : " + err)
-        } else {    
+        } else {
             if (resultAggr.length == 0) {
                 callback(true, "Permission d'en créer un nouveau")
             } else {
@@ -109,7 +109,7 @@ module.exports.setAttachment = (newAttachement, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": newAttachement.id_offer
+                    "_id": require("mongodb").ObjectId(newAttachement.id_offer)
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -314,7 +314,7 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                             "messages": "$messages"
                         }
                     },
-                    "flag": { "$addToSet": {"flag" : "$flag"} }
+                    "flag": { "$addToSet": { "flag": "$flag" } }
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -361,7 +361,7 @@ module.exports.getAllMessagesForDifferentOffer = (id_user, callback) => {
                                 })
                             }*/
                         })
-                        
+
                     }
                 } else {
                     callback(false, "Aucun message n'a été repertorié")
@@ -404,7 +404,7 @@ module.exports.getCountForEmployer = (objet, callback) => {
 
                 } else {
                     objet.nbreOffer = 0;
-                    
+
                     favoris.countFavorite(objet, (isCount, message, resultWithFavorite) => {
                         callback(false, message, resultWithFavorite);
                     })
@@ -412,7 +412,7 @@ module.exports.getCountForEmployer = (objet, callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -433,12 +433,12 @@ module.exports.gets = (id_employer, callback) => {
                     {
                         "$group": {
                             "_id": "$id_freelancer",
-                            "nbreOffer": {"$sum": 1}
+                            "nbreOffer": { "$sum": 1 }
                         }
                     }
                 ]).toArray((err, resultAggr) => {
                     if (err) {
-                        callback(false, "Une erreur est survenue lors de la récupération des offres : " +err)
+                        callback(false, "Une erreur est survenue lors de la récupération des offres : " + err)
                     } else {
                         if (resultAggr.length > 0) {
                             var outFreelancer = 0,
@@ -508,13 +508,13 @@ module.exports.getMessage = (props, callback) => {
                 }
             },
             {
-                "$sort": {"messages.send_at": -1}
+                "$sort": { "messages.send_at": -1 }
             },
-            { "$limit": 1}
+            { "$limit": 1 }
 
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de la récupération des messages  pour la notification : " +err)
+                callback(false, "Une erreur est survenue lors de la récupération des messages  pour la notification : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var users = require("./Users"),
@@ -532,7 +532,7 @@ module.exports.getMessage = (props, callback) => {
                         } else {
                             callback(false, message)
                         }
-                        
+
                     })
 
                 } else {
@@ -577,7 +577,7 @@ module.exports.getEntrants = (id, callback) => {
                     users.getInfos(employer, (isGet, message, resultWithInfosEmployer) => {
                         if (isGet) {
                             objetRetour.employer = resultWithInfosEmployer;
-                            
+
                             var freelancer = {
                                 "id_user": resultAggr[0].id_freelancer,
                                 "id_viewer": resultAggr[0].id_freelancer
@@ -617,7 +617,7 @@ module.exports.toggleOffer = (objet, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la recherche de l'offre : " +err)
+                callback(false, "Une erreur lors de la recherche de l'offre : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var filter = {
@@ -642,10 +642,10 @@ module.exports.toggleOffer = (objet, callback) => {
                                     entityEndOffer.id_resiler = objet.id_resiler;
 
                                     notifier.sendNotificationOffer(entityEndOffer, (isSend, message, result) => {
-                                        callback(true, message, {flag: false})
+                                        callback(true, message, { flag: false })
                                     })
                                 } else {
-                                    callback(true, "La conversation a été rélancé", {flag: true})
+                                    callback(true, "La conversation a été rélancé", { flag: true })
                                 }
 
                             } else {
@@ -658,8 +658,8 @@ module.exports.toggleOffer = (objet, callback) => {
                 }
             }
         })
-            
+
     } catch (exception) {
-        
+
     }
 }
