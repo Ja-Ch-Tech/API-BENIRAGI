@@ -11,7 +11,7 @@ router.get('/', function (req, res, next) {
 });
 
 
-aws.config.update({
+/*aws.config.update({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     region: 'us-east-2'
@@ -19,13 +19,7 @@ aws.config.update({
 
 var s3 = new aws.S3();
 
-/*var filefilter = (req, file, cb) => {
-    if (file.mineType === "image/jpeg" || file.mineType === "image/png") {
-        cb(null, true)
-    } else {
-        cb(new Error("Invalide mine-type"), false)
-    }
-}*/
+
 
 var upload = multer({
     //fileFilter: filefilter,
@@ -71,7 +65,7 @@ router.post('/file-upload', (req, res) => {
         }
 
     })
-})
+})*/
 
 
 module.exports = router;

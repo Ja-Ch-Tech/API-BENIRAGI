@@ -9,7 +9,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var db = require("./models/db");	
+var db = require("./models/db");
 
 //mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
@@ -53,9 +53,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	next();
 });
 
 app.use('/', indexRouter);
