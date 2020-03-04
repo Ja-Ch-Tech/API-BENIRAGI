@@ -206,8 +206,7 @@ module.exports.findOneById = (id, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(id),
-                    "flag": true
+                    "_id": require("mongodb").ObjectId(id)
                 }
             }
         ]).toArray((err, resultAggr) => {
