@@ -40,8 +40,8 @@ module.exports.becomeVIP = (newVIP, callback) => {
                     } else {
                         //callback(false, message)
                         var filter = {
-                                "_id": resultTest._id
-                            },
+                            "_id": resultTest._id
+                        },
                             update = {
                                 "$set": {
                                     "flag": true
@@ -50,7 +50,7 @@ module.exports.becomeVIP = (newVIP, callback) => {
 
                         collection.value.updateOne(filter, update, (err, resultUp) => {
                             if (err) {
-                                callback(false, "Une erreur est survenue lors de la demande de reconsidération de VIP : " +err)
+                                callback(false, "Une erreur est survenue lors de la demande de reconsidération de VIP : " + err)
                             } else {
                                 var entity = require("./entities/Notification").VIP(resultTest.id_freelancer),
                                     notifier = require("./Notification");
@@ -64,7 +64,7 @@ module.exports.becomeVIP = (newVIP, callback) => {
                         })
                     }
                 })
-                
+
             } else {
                 callback(false, message)
             }
@@ -82,9 +82,9 @@ module.exports.getVIP = (limit, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "dates.end" : { "$gte" : new Date().getTime() },
+                    "dates.end": { "$gte": new Date().getTime() },
                     "flag": false,
-                    "accept": { "$exists": 1},
+                    "accept": { "$exists": 1 },
                     "accept.response": true
                 }
             },
@@ -94,7 +94,7 @@ module.exports.getVIP = (limit, callback) => {
             formatLimit
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de la recherche de la liste des VIP : " +err)
+                callback(false, "Une erreur est survenue lors de la recherche de la liste des VIP : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var users = require("./Users"),
@@ -138,7 +138,7 @@ module.exports.getVIP = (limit, callback) => {
 //Permet de tester que la demande ait déjà été éxécuter
 module.exports.testingExists = (id, callback) => {
     try {
-        
+
         collection.value.aggregate([
             {
                 "$match": {
@@ -147,10 +147,10 @@ module.exports.testingExists = (id, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors du test de l'existance d'une demande en cours : " +err)
+                callback(false, "Une erreur est survenue lors du test de l'existance d'une demande en cours : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    
+
                     callback(false, "Une demande est en cours d'utilisation", resultAggr[0])
                 } else {
                     callback(true, "Aucune demande en cours d'utilisation")
@@ -159,5 +159,34 @@ module.exports.testingExists = (id, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors du test de l'existance d'une demande en cours : " + exception)
+    }
+}
+
+//Module pour le test, afin de savoir si l'utilisateur est VIP
+module.exports.isVIP = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_freelancer": id,
+                    "dates.end": { "$gte": new Date().getTime() },
+                    "flag": false,
+                    "accept": { "$exists": 1 },
+                    "accept.response": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du test du compte : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(true, "Est VIP")
+                } else {
+                    callback(false, "Actuellement n'est pas VIP")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du test du compte : " + exception)
     }
 }

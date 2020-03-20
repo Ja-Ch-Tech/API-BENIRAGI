@@ -1031,13 +1031,25 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                                                                 }
 
                                                                 if (outSkills == resultWithFavorite.jobs.skills.length) {
-                                                                    callback(true, "Les infos des tops freelancers sont renvoyé", resultWithFavorite)
+                                                                    var vip = require("./Vip");
+
+                                                                    vip.initialize(db);
+                                                                    vip.isVIP("" + resultWithFavorite._id, (isTrue, message) => {
+                                                                        resultWithFavorite.isVIP = isTrue;
+                                                                        callback(true, "Les infos des tops freelancers sont renvoyé", resultWithFavorite)
+                                                                    })
                                                                 }
                                                             })
                                                         }
 
                                                     } else {
-                                                        callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                                        var vip = require("./Vip");
+
+                                                        vip.initialize(db);
+                                                        vip.isVIP("" + resultWithFavorite._id, (isTrue, message) => {
+                                                            resultWithFavorite.isVIP = isTrue;
+                                                            callback(true, "Les infos de l'utilisateur est renvoyé", resultWithFavorite);
+                                                        })
                                                     }
                                                 })
 
