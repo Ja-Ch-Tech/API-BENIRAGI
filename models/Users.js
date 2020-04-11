@@ -37,45 +37,101 @@ module.exports.register = (newUser, callback) => {
                         type_users.initialize(db);
                         type_users.findOne(newUser.id_type, (isFound, messageType, resultType) => {
                             if (isFound) {
-                                newUser.id_type = "" + resultType._id;
-                                //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
-                                collection.value.insertOne(newUser, (err, result) => {
+                                if (/freelancer|free|prestataire/i.test(resultType.intitule)) {
+                                    var job = require("./Jobs");
 
-                                    //On test s'il y a erreur
-                                    if (err) {
-                                        callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
-                                    } else { //S'il n'y a pas erreur
+                                    job.initialize(db);
+                                    job.findOneById(newUser.id_job, (isFound, message, resultFoundJob) => {
+                                        if (isFound) {
+                                            
+                                            newUser.id_type = "" + resultType._id;
+                                            newUser.id_job = "" + resultFoundJob._id;
 
-                                        //On vérifie s'il y a des résultat renvoyé
-                                        if (result) {
-                                            var type_users = require("./TypeUsers");
+                                            //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
+                                            collection.value.insertOne(newUser, (err, result) => {
 
-                                            type_users.initialize(db)
-                                            type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+                                                //On test s'il y a erreur
+                                                if (err) {
+                                                    callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
+                                                } else { //S'il n'y a pas erreur
 
-                                                var code = require("./Code");
+                                                    //On vérifie s'il y a des résultat renvoyé
+                                                    if (result) {
+                                                        var type_users = require("./TypeUsers");
 
-                                                code.initialize(db);
-                                                code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
-                                                    if (isGenerate) {
-                                                        sendCode(resultWithCode, (isSend, message, resultSend) => {
-                                                            if (isSend) {
-                                                                callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
-                                                            } else {
-                                                                callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
-                                                            }
+                                                        type_users.initialize(db)
+                                                        type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+
+                                                            var code = require("./Code");
+
+                                                            code.initialize(db);
+                                                            code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
+                                                                if (isGenerate) {
+                                                                    sendCode(resultWithCode, (isSend, message, resultSend) => {
+                                                                        if (isSend) {
+                                                                            callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                                        } else {
+                                                                            callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                                        }
+                                                                    })
+                                                                } else {
+                                                                    callback(true, "Demandé un nouveau code", resultWithTest)
+                                                                }
+                                                            })
                                                         })
-                                                    } else {
-                                                        callback(true, "Demandé un nouveau code", resultWithTest)
-                                                    }
-                                                })
-                                            })
 
-                                        } else { //Si non l'etat sera false et on envoi un message
-                                            callback(false, "Désolé, l'utilisateur non enregistrer")
+                                                    } else { //Si non l'etat sera false et on envoi un message
+                                                        callback(false, "Désolé, l'utilisateur non enregistrer")
+                                                    }
+                                                }
+                                            })
+                                        } else {
+                                            callback(false, message)
                                         }
-                                    }
-                                })
+                                    })
+                                } else {
+                                    delete newUser.id_job;
+                                    newUser.id_type = "" + resultType._id;
+                                    //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
+                                    collection.value.insertOne(newUser, (err, result) => {
+
+                                        //On test s'il y a erreur
+                                        if (err) {
+                                            callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
+                                        } else { //S'il n'y a pas erreur
+
+                                            //On vérifie s'il y a des résultat renvoyé
+                                            if (result) {
+                                                var type_users = require("./TypeUsers");
+
+                                                type_users.initialize(db)
+                                                type_users.isEmployer(result.ops[0], (isTrue, message, resultWithTest) => {
+
+                                                    var code = require("./Code");
+
+                                                    code.initialize(db);
+                                                    code.generate(resultWithTest, (isGenerate, message, resultWithCode) => {
+                                                        if (isGenerate) {
+                                                            sendCode(resultWithCode, (isSend, message, resultSend) => {
+                                                                if (isSend) {
+                                                                    callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                                } else {
+                                                                    callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                                }
+                                                            })
+                                                        } else {
+                                                            callback(true, "Demandé un nouveau code", resultWithTest)
+                                                        }
+                                                    })
+                                                })
+
+                                            } else { //Si non l'etat sera false et on envoi un message
+                                                callback(false, "Désolé, l'utilisateur non enregistrer")
+                                            }
+                                        }
+                                    }) 
+                                }
+                                
                             } else {
                                 callback(false, messageType)
                             }
