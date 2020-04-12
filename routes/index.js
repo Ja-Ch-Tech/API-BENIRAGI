@@ -12,8 +12,8 @@ router.get('/', function (req, res, next) {
 
 
 aws.config.update({
-    secretAccessKey: "process.env.AWS_SECRET_ACCESS_KEY",
-    accessKeyId: "process.env.AWS_ACCESS_KEY_ID",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     region: 'us-east-2'
 });
 
@@ -23,7 +23,7 @@ var upload = multer({
     //fileFilter: filefilter,
     storage: multerS3({
         s3: s3,
-        bucket: "process.env.S3_BUCKET_NAME",
+        bucket: process.env.S3_BUCKET_NAME,
         metadata: function (req, file, cb) {
             cb(null, { fieldName: 'TESTING_METADATA_FRDRCPETER' });
         },
