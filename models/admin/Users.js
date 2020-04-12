@@ -307,6 +307,36 @@ module.exports = {
             props.profil = 0
             callback(false, "Une exception a été lévée lors du comptage du nombre d'utilisateur dans un job : " + err, props)
         }
+    },
+
+    /**
+     * Module de comptage de nombre d'utilisateur ayant cette ville
+     * @param {ObjectConstructor} props Objet contenant les infos du métier
+     * @param {Function} callback La fonction de retour
+     */
+    countUserForTown(props, callback) {
+        try {
+            collection.value.aggregate([
+                {
+                    "$match": {
+                        "id_town": "" + props._id
+                    }
+                },
+                { "$count": "nbreProfil" }
+            ]).toArray((err, resultAggr) => {
+                if (err) {
+                    props.profil = 0;
+                    callback(false, "Une erreur lors du comptage du nombre d'utilisateur dans une ville : " + err, props)
+                } else {
+                    props.profil = resultAggr && resultAggr.length > 0 ? resultAggr[0].nbreProfil : 0;
+
+                    callback(true, "Le comptage est fini !", props)
+                }
+            })
+        } catch (exception) {
+            props.profil = 0
+            callback(false, "Une exception a été lévée lors du comptage du nombre d'utilisateur dans une ville : " + err, props)
+        }
     }
 }
 

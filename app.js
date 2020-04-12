@@ -13,7 +13,7 @@ var db = require("./models/db");
 
 //mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://localhost/Beniragi
-var string_con = 'mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority';
+var string_con = 'mongodb://localhost/Beniragi';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 	console.log(resultConnect);
@@ -39,6 +39,7 @@ var jobsAdminRouter = require("./routes/admin/Jobs");
 var typeUsersAdminRouter = require("./routes/admin/TypeUsers");
 var usersAdminRouter = require("./routes/admin/Users");
 var vipAdminRouter = require("./routes/admin/Vip");
+var townAdminRouter = require("./routes/admin/Town");
 
 var app = express();
 
@@ -78,6 +79,7 @@ app.use('/admin/jobs', jobsAdminRouter);
 app.use('/admin/type_users', typeUsersAdminRouter);
 app.use('/admin/users', usersAdminRouter);
 app.use('/admin/vip', vipAdminRouter);
+app.use('/admin/town', townAdminRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
