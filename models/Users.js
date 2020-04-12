@@ -43,9 +43,9 @@ module.exports.register = (newUser, callback) => {
                                     job.initialize(db);
                                     job.findOneById(newUser.id_job, (isFound, message, resultFoundJob) => {
                                         if (isFound) {
-                                            
+
                                             newUser.id_type = "" + resultType._id;
-                                            newUser.id_job = "" + resultFoundJob._id;
+                                            newUser.jobs.id_job = "" + resultFoundJob._id;
 
                                             //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
                                             collection.value.insertOne(newUser, (err, result) => {

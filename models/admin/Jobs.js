@@ -70,7 +70,22 @@ module.exports = {
                             callback(false, "Une erreur est survenue lors de la récupération des metiers : " +err)
                         } else {
                             if (resultAggr.length > 0) {
-                                callback(true, "Les métier sont renvoyé", resultAggr)
+                                var out = 0,
+                                listOut = [],
+                                users = require("./Users");
+                                
+                                users.initialize(db);
+                                
+                                for (let index = 0; index < resultAggr.length; index++) {
+                                    users.countUserForJob(resultAggr[index], (isCount, message, resultWithCount) => {
+                                        out++;
+                                        listOut.push(resultWithCount);
+                                        
+                                        if (out == resultAggr.length) {                                            
+                                            callback(true, "Les métier sont renvoyé", listOut)
+                                        }
+                                    })
+                                }
                             } else {
                                 callback(false, "Aucun Jobs encore ajouté")
                             }
@@ -105,7 +120,9 @@ module.exports = {
                                         "_id": resultAggr[0]._id
                                     },
                                     update = {
-                                        "flag": resultAggr[0].flag == true ? false : true
+                                        "$set": {
+                                            "flag": resultAggr[0].flag == true ? false : true
+                                        }
                                     };
 
                                 collection.value.updateOne(filter, update, (err, resultUp) => {
