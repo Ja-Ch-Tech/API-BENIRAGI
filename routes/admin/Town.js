@@ -21,4 +21,21 @@ router.get("/gets/:id_admin", (req, res) => {
     })
 })
 
+//Route pour le basculement du flag d'une ville
+router.put("/toggle/:id_admin/:id_town", (req, res) => {
+    var props = {
+        admin: req.params.id_admin,
+        job: req.params.id_town
+    };
+
+    model.initialize(db);
+    model.toggle(props, (isToggle, message, result) => {
+        objetRetour.getEtat = isToggle;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;
