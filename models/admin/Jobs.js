@@ -46,5 +46,91 @@ module.exports = {
         } catch (exception) {
             callback(false, "Une exception a été lévée lors de l'ajout du metier : " + exception)
         }
+    },
+
+    /**
+     * Module des récupération des tous les métiers actifs ou non
+     * @param {ObjectConstructor} props L'objet de récupération des job pour admin
+     * @param {Function} callback La fonction de retour
+     */
+    listJobs(props, callback) {
+        try {
+            admin.initialize(db);
+            admin.isAdmin(props.admin, (isTrue, message) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {}
+                        },
+                        {
+                            "$sort": { "created_at": -1 }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la récupération des metiers : " +err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                callback(true, "Les métier sont renvoyé", resultAggr)
+                            } else {
+                                callback(false, "Aucun Jobs encore ajouté")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, message)
+                }
+            })
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de la récupération des metiers : " + exception)
+        }
+    },
+
+    toggle(props, callback) {
+        try {
+            admin.initialize(db);
+            admin.isAdmin(props.admin, (isTrue, message, result) => {
+                if (isTrue) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "_id": require("mongodb").ObjectId(props.job)
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de la recherche du métier : " +err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                var filter = {
+                                        "_id": resultAggr[0]._id
+                                    },
+                                    update = {
+                                        "flag": resultAggr[0].flag == true ? false : true
+                                    };
+
+                                collection.value.updateOne(filter, update, (err, resultUp) => {
+                                    if (err) {
+                                        callback(false, "Une erreur lors de la mise à jour du flag : " +err)
+                                    } else {
+                                        if (resultUp) {
+                                            callback(true, "Mise à jour effectué !")
+                                        } else {
+                                            callback(false, "Aucune mise à jour !")
+                                        }
+                                    }
+                                })
+
+                            } else {
+                                callback(false, "Ce métier n'existe pas !")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, message)
+                }
+            })
+        } catch (exception) {
+            callback(false, "Une exception a été lévée lors de la mise à jour du flag : " + exception)
+        }
     }
 }
