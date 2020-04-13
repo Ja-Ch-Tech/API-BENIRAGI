@@ -15,7 +15,9 @@ module.exports.getJobs = (limit, callback) => {
 
         collection.value.aggregate([
             {
-                "$match": {}
+                "$match": {
+                    "flag": true
+                }
             },
             limit,
             {
@@ -59,7 +61,8 @@ module.exports.findOneById = (id, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(id)
+                    "_id": require("mongodb").ObjectId(id),
+                    "flag": true
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -87,7 +90,8 @@ module.exports.searchJob = (value, callback) => {
                     "$or": [
                         { "name": new RegExp(value, "i") },
                         { "describe": new RegExp(value, "i") }
-                    ]
+                    ],
+                    "flag": true
                 }
             },
             {
@@ -205,7 +209,8 @@ module.exports.smartSearch = (objet, callback) => {
                             {
                                 "describe": { "$regex": new RegExp(objet.job, "i") }
                             }
-                        ]
+                        ],
+                        "flag": true
 
                     }
                 },
@@ -280,8 +285,8 @@ module.exports.smartSearch = (objet, callback) => {
                             {
                                 "describe": { "$regex": new RegExp(objet.job, "i") }
                             }
-                        ]
-
+                        ],
+                        "flag": true
                     }
                 },
             ]).toArray((err, resultAggr) => {
@@ -332,6 +337,6 @@ module.exports.smartSearch = (objet, callback) => {
             })
         }
     } catch (exception) {
-
+        callback(false, "Une exception a été lévée lors de la smart search : " + exception)
     }
 }
