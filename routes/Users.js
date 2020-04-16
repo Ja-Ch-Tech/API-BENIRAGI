@@ -353,4 +353,18 @@ router.post('/resetPassword', (req, res) => {
 
 })
 
+//Route permettant la suppression de son compte
+router.put('/delete/:id', (req, res) => {
+    var objetRetour = require("./ObjetRetour").ObjetRetour();
+
+    model.deleteAccount(req.params.id, (isDeleted, message, result) => {
+        
+        objetRetour.getEtat = isDeleted;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200).send(objetRetour);
+    })
+})
+
 module.exports = router;

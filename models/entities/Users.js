@@ -5,6 +5,7 @@ module.exports.Users = function Users() {
         id_type: String,
         flag: false,
         visibility: false,
+        deleted: false,
         id_job: String,
         created_at: new Date()
     }

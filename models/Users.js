@@ -1,7 +1,8 @@
 var db = require("./db"),
     bcrypt = require("bcryptjs"),
     nodemailer = require("nodemailer"),
-    jwt = require("jsonwebtoken");
+    jwt = require("jsonwebtoken"),
+    twilio = require("twilio")("AC8ff0de0643a9323ffb31b11a2ff4e147", "5ad2045cda865832c0c3080b7d969624");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -153,11 +154,15 @@ module.exports.register = (newUser, callback) => {
 //Pour tester l'adresse e-mail
 function testEmail(user, callback) {
     if (user.email) {
-        if (EMAIL_REGEX.test(user.email)) {
+        if (EMAIL_REGEX.test(user.email) || /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(user.email)) {
             collection.value.aggregate([
                 {
                     "$match": {
-                        "email": user.email
+                        "email": user.email,
+                        "$or": [
+                            { "deleted": {"$exists": 0 }},
+                            { "deleted": false }
+                        ]
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -172,7 +177,7 @@ function testEmail(user, callback) {
                 }
             })
         } else {
-            callback(false, "Le format d'adresse est invalide")
+            callback(false, "Le format d'adresse ou de numéro de téléphone est invalide")
         }
 
     } else {
@@ -183,7 +188,22 @@ function testEmail(user, callback) {
 //Fonction d'envoi du code d'activation
 function sendCode(account, callback) {
 
-    const output = `<!DOCTYPE html>
+    if (/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(account.email)) {
+        twilio.messages.create(
+            {
+                body: `Beniragi Activation \n Le code d'activation de votre compte est ${account.code}`,
+                from: "+18509203620",
+                to: account.email.toString()
+            }
+        ).then(message => {
+            console.log(message.sid);
+            callback(true, "Code envoyé avec succès", account)
+        }).catch(err => {
+            console.log(err);
+            callback(false, "Code de confirmation non-envoyé : " + err, account)
+        })
+    } else {
+        const output = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -220,40 +240,42 @@ function sendCode(account, callback) {
 </body>
 </html>`;
 
-    let transporter = nodemailer.createTransport({
-        host: "beniragiservices.com",
-        port: 465,
-        secure: true,
-        auth: {
-            user: "no-reply@beniragiservices.com",
-            pass: "no-reply@2020"
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
+        let transporter = nodemailer.createTransport({
+            host: "beniragiservices.com",
+            port: 465,
+            secure: true,
+            auth: {
+                user: "no-reply@beniragiservices.com",
+                pass: "no-reply@2020"
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
 
-    let mailOptions = {
-        from: '"Beniragi-Service" <no-reply@beniragiservices.com>',
-        to: account.email,
-        subject: "Activation de compte",
-        html: output
-    };
+        let mailOptions = {
+            from: '"Beniragi-Service" <no-reply@beniragiservices.com>',
+            to: account.email,
+            subject: "Activation de compte",
+            html: output
+        };
 
-    transporter.sendMail(mailOptions, (error, info) => {
+        transporter.sendMail(mailOptions, (error, info) => {
 
-        if (error) {
-            console.log("Erreur d'envoi de mail");
-            console.log(error);
-            callback(false, "Code de confirmation non-envoyé : " + error, account)
-        } else {
-            console.log("Mail envoyé avec succès");
-            callback(true, "Code envoyé avec succès", account)
-        }
+            if (error) {
+                console.log("Erreur d'envoi de mail");
+                console.log(error);
+                callback(false, "Code de confirmation non-envoyé : " + error, account)
+            } else {
+                console.log("Mail envoyé avec succès");
+                callback(true, "Code envoyé avec succès", account)
+            }
 
-        transporter.close();
+            transporter.close();
 
-    })
+        })
+    }
+    
 }
 
 //Récupère les details pour un user
@@ -262,7 +284,11 @@ module.exports.findOneById = (id, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(id)
+                    "_id": require("mongodb").ObjectId(id),
+                    "$or": [
+                        { "deleted": { "$exists": 0 } },
+                        { "deleted": false }
+                    ]
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -324,7 +350,11 @@ module.exports.login = (obj, callback) => {
     try {
         collection.value.aggregate([{
             "$match": {
-                "email": obj.email
+                "email": obj.email,
+                "$or": [
+                    { "deleted": { "$exists": 0 } },
+                    { "deleted": false }
+                ]
             }
         },
         {
@@ -375,7 +405,7 @@ module.exports.login = (obj, callback) => {
                     });
 
                 } else {
-                    callback(false, "Username incorrect");
+                    callback(false, "Ce compte n'est pas repertorié !");
                 }
             }
         })
@@ -422,6 +452,14 @@ module.exports.toggleVisibility = (id_user, callback) => {
 module.exports.getNumberForTypeUser = (callback) => {
     try {
         collection.value.aggregate([
+            {
+                "$match": {
+                    "$or": [
+                        { "deleted": { "$exists": 0 } },
+                        { "deleted": false }
+                    ]
+                }
+            },
             {
                 "$group": {
                     "_id": "$id_type",
@@ -681,7 +719,11 @@ module.exports.getInfos = (objet, callback) => {
             {
                 "$match": {
                     "_id": require("mongodb").ObjectId(objet.id_user),
-                    "flag": true
+                    "flag": true,
+                    "$or": [
+                        { "deleted": { "$exists": 0 } },
+                        { "deleted": false }
+                    ]
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -818,7 +860,11 @@ module.exports.countUsersForJobs = (objet, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "jobs.id_job": "" + objet._id
+                    "jobs.id_job": "" + objet._id,
+                    "$or": [
+                        { "deleted": { "$exists": 0 } },
+                        { "deleted": false }
+                    ]
                 }
             },
             {
@@ -1039,7 +1085,11 @@ module.exports.getInfosForFreelancer = (objet, callback) => {
                             "$match": {
                                 "_id": require("mongodb").ObjectId(resultInTime._id),
                                 "flag": true,
-                                "visibility": true
+                                "visibility": true,
+                                "$or": [
+                                    { "deleted": { "$exists": 0 } },
+                                    { "deleted": false }
+                                ]
                             }
                         }
                     ]).toArray((err, resultAggr) => {
@@ -1147,7 +1197,11 @@ module.exports.getFreelancers = (limit, moment, id_viewer, callback) => {
                 collection.value.aggregate([
                     {
                         "$match": {
-                            "id_type": "" + resultWithID._id
+                            "id_type": "" + resultWithID._id,
+                            "$or": [
+                                { "deleted": { "$exists": 0 } },
+                                { "deleted": false }
+                            ]
                         }
                     },
                     {
@@ -1281,9 +1335,12 @@ module.exports.smartSearch = (objet, callback) => {
                             },
                             { "jobs.id_job": objet.id_job },
                             { "id_town": objet.id_town },
-                            { "flag": true }
+                            { "flag": true },
+                        ],
+                        "$or": [
+                            { "deleted": { "$exists": 0 } },
+                            { "deleted": false }
                         ]
-
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -1323,8 +1380,11 @@ module.exports.smartSearch = (objet, callback) => {
                             },
                             { "jobs.id_job": objet.id_job },
                             { "flag": true }
+                        ],
+                        "$or": [
+                            { "deleted": { "$exists": 0 } },
+                            { "deleted": false }
                         ]
-
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -1364,8 +1424,11 @@ module.exports.smartSearch = (objet, callback) => {
                             },
                             { "id_town": objet.id_town },
                             { "flag": true }
+                        ],
+                        "$or": [
+                            { "deleted": { "$exists": 0 } },
+                            { "deleted": false }
                         ]
-
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -1408,7 +1471,11 @@ module.exports.findOneByEmail = (email, callback) => {
                 {
                     "$match": {
                         "email": email,
-                        "flag": true
+                        "flag": true,
+                        "$or": [
+                            { "deleted": { "$exists": 0 } },
+                            { "deleted": false }
+                        ]
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -1665,5 +1732,40 @@ module.exports.setCertificate = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une erreur lors de la certification du freelancer : " + err)
+    }
+}
+
+//Module de suppression du compte utilisateur
+module.exports.deleteAccount = (id, callback) => {
+    try {
+        this.findOneById(id, (isFound, message, resultFound) => {
+            if (isFound) {
+                var filter = {
+                        "_id": resultFound._id
+                    },
+                    update = {
+                        "$set": {
+                            "deleted": true,
+                            "flag": false
+                        }
+                    };
+
+                collection.value.updateOne(filter, update, (err, resultUp) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la suppression du compte : " +err)
+                    } else {
+                        if (resultUp) {
+                            callback(true, "Le compte est supprimé")
+                        } else {
+                            callback(false, "Un problème lors de la suppression")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la suppression du compte : " + exception)
     }
 }
