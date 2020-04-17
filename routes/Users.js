@@ -20,6 +20,7 @@ router.post('/register', (req, res, next) => {
     entity.password = req.body.password;
     entity.id_type = req.body.id_type;
     entity.id_job = req.body.id_job;
+    entity.id_town = req.body.id_town;
 
     model.initialize(db);
     model.register(entity, (isCreated, message, result) => {

@@ -3,10 +3,11 @@ module.exports.Users = function Users() {
         email: String,
         password: String,
         id_type: String,
+        id_job: String,
+        id_town: String,
         flag: false,
         visibility: false,
         deleted: false,
-        id_job: String,
         created_at: new Date()
     }
 }
