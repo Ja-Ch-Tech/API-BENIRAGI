@@ -355,7 +355,7 @@ router.post('/resetPassword', (req, res) => {
 })
 
 //Route permettant la suppression de son compte
-router.put('/delete/:id', (req, res) => {
+router.delete('/delete/:id', (req, res) => {
     var objetRetour = require("./ObjetRetour").ObjetRetour();
 
     model.deleteAccount(req.params.id, (isDeleted, message, result) => {
