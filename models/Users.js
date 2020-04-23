@@ -46,7 +46,9 @@ module.exports.register = (newUser, callback) => {
                                         if (isFound) {
 
                                             newUser.id_type = "" + resultType._id;
-                                            newUser.jobs.id_job = "" + resultFoundJob._id;
+                                            newUser.jobs = {
+                                               id_job: "" + resultFoundJob._id
+                                            };
 
                                             var town = require("./Town");
 
