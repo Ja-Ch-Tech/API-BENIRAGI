@@ -2,7 +2,7 @@ var db = require("./db"),
     bcrypt = require("bcryptjs"),
     nodemailer = require("nodemailer"),
     jwt = require("jsonwebtoken"),
-    twilio = require("twilio")("AC8ff0de0643a9323ffb31b11a2ff4e147", "5ad2045cda865832c0c3080b7d969624");
+    twilio = require("twilio")("AC07c9c094646ef2ab48e105ed64c4fcf1", "9b5bd5b0a5ad1475ea79ea92d64c56c6");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -217,7 +217,7 @@ function sendCode(account, callback) {
         twilio.messages.create(
             {
                 body: `Beniragi Activation \n Le code d'activation de votre compte est ${account.code}`,
-                from: "+18509203620",
+                from: "+15017122661",
                 to: account.email.toString()
             }
         ).then(message => {
