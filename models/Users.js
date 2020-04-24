@@ -2,7 +2,7 @@ var db = require("./db"),
     bcrypt = require("bcryptjs"),
     nodemailer = require("nodemailer"),
     jwt = require("jsonwebtoken"),
-    twilio = require("twilio")("AC07c9c094646ef2ab48e105ed64c4fcf1", "9b5bd5b0a5ad1475ea79ea92d64c56c6");
+    twilio = require("twilio")("AC07c9c094646ef2ab48e105ed64c4fcf1", "5c5108339a47d15eba184b044dc9b604");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -195,7 +195,7 @@ function testEmail(user, callback) {
                     callback(false, "Une erreur est survenue lors du test de l'adresse e-mail : " + err)
                 } else {
                     if (resultAggr.length > 0) {
-                        callback(false, "Adresse e-mail déjà utilisé")
+                        callback(false, "Adresse e-mail ou numéro de téléphone déjà utilisé")
                     } else {
                         callback(true, "Autorisation accordé")
                     }
@@ -216,7 +216,7 @@ function sendCode(account, callback) {
     if (/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(account.email)) {
         twilio.messages.create(
             {
-                body: `Beniragi Activation \n Le code d'activation de votre compte est ${account.code}`,
+                body: `Le code d'activation de votre compte est ${account.code}`,
                 from: "+12055396443",
                 to: account.email.toString()
             }
