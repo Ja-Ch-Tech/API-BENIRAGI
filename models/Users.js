@@ -216,7 +216,7 @@ function sendCode(account, callback) {
     if (/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(account.email)) {
         twilio.messages.create(
             {
-                body: `Le code d'activation de votre compte est ${account.code}`,
+                body: `Le code d'activation de votre compte Beniragi-Services est ${account.code}`,
                 from: "+12055396443",
                 to: account.email.toString()
             }
