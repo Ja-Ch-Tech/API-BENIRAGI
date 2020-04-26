@@ -6,7 +6,8 @@ var db = require("./db"),
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    PSWD_REGEX = /^(?=.*\d).{4,8}$/;//Le mot de passe doit comprendre entre 4 et 8 chiffres et inclure au moins un chiffre numérique.
+    PSWD_REGEX = /^(?=.*\d).{4,8}$/,
+    NUM_TEL = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g;//Le mot de passe doit comprendre entre 4 et 8 chiffres et inclure au moins un chiffre numérique.
 
 var collection = {
     value: null
@@ -179,7 +180,7 @@ module.exports.register = (newUser, callback) => {
 //Pour tester l'adresse e-mail
 function testEmail(user, callback) {
     if (user.email) {
-        if (EMAIL_REGEX.test(user.email) || /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(user.email)) {
+        if (EMAIL_REGEX.test(user.email)) {
             collection.value.aggregate([
                 {
                     "$match": {
@@ -213,7 +214,7 @@ function testEmail(user, callback) {
 //Fonction d'envoi du code d'activation
 function sendCode(account, callback) {
 
-    if (/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/g.test(account.email)) {
+    if (NUM_TEL.test(account.email)) {
         twilio.messages.create(
             {
                 body: `Le code d'activation de votre compte Beniragi-Services est ${account.code}`,
