@@ -2,7 +2,7 @@ var db = require("./db"),
     bcrypt = require("bcryptjs"),
     nodemailer = require("nodemailer"),
     jwt = require("jsonwebtoken"),
-    twilio = require("twilio")("AC07c9c094646ef2ab48e105ed64c4fcf1", "5c5108339a47d15eba184b044dc9b604");
+    smsOrange = require("smsorange");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -180,7 +180,7 @@ module.exports.register = (newUser, callback) => {
 //Pour tester l'adresse e-mail
 function testEmail(user, callback) {
     if (user.email) {
-        if (EMAIL_REGEX.test(user.email)) {
+        if (EMAIL_REGEX.test(user.email) || NUM_TEL.test(user.email)) {
             collection.value.aggregate([
                 {
                     "$match": {
@@ -215,19 +215,11 @@ function testEmail(user, callback) {
 function sendCode(account, callback) {
 
     if (NUM_TEL.test(account.email)) {
-        twilio.messages.create(
-            {
-                body: `Le code d'activation de votre compte Beniragi-Services est ${account.code}`,
-                from: "+12055396443",
-                to: account.email.toString()
-            }
-        ).then(message => {
-            console.log(message.sid);
-            callback(true, "Code envoyé avec succès", account)
-        }).catch(err => {
-            console.log(err);
-            callback(false, "Code de confirmation non-envoyé : " + err, account)
-        })
+        let sms = new smsOrange("Basic NHFCR2lnY3I0OGZidDZQdHU3V0p5ZHRMSWxjU3o0S2c6dlo3MzQ1ZXhzRzVoV1BQYg==", "+243899641137")
+
+        sms.sendSms(account.email, `Votre code de validation pour votre compte BENIRAGI-SERVICES est ` + account.code);
+
+        callback(true, "Le message a été envoyé")
     } else {
         const output = `<!DOCTYPE html>
 <html lang="en">
