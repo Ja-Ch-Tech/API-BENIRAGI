@@ -215,7 +215,7 @@ function testEmail(user, callback) {
 function sendCode(account, callback) {
 
     if (NUM_TEL.test(account.email)) {
-        let sms = new smsOrange("Basic NHFCR2lnY3I0OGZidDZQdHU3V0p5ZHRMSWxjU3o0S2c6dlo3MzQ1ZXhzRzVoV1BQYg==", "+243899641137")
+        let sms = new smsOrange("Basic NHFCR2lnY3I0OGZidDZQdHU3V0p5ZHRMSWxjU3o0S2c6dlo3MzQ1ZXhzRzVoV1BQYg==", "+243899546448")
 
         sms.sendSms(account.email, `Votre code de validation pour votre compte BENIRAGI-SERVICES est ` + account.code);
 
