@@ -3,6 +3,7 @@ var db = require("./db"),
     nodemailer = require("nodemailer"),
     jwt = require("jsonwebtoken"),
     smsOrange = require("smsorange");
+const { FieldValueInstance } = require("twilio/lib/rest/autopilot/v1/assistant/fieldType/fieldValue");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -81,13 +82,13 @@ module.exports.register = (newUser, callback) => {
                                                                         if (isGenerate) {
                                                                             sendCode(resultWithCode, (isSend, message, resultSend) => {
                                                                                 if (isSend) {
-                                                                                    callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                                                    callback(true, "Le code est envoyé", resultWithCode)
                                                                                 } else {
-                                                                                    callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                                                    callback(false, "Verifier votre connexion à internet puis demandé un nouveau code")
                                                                                 }
                                                                             })
                                                                         } else {
-                                                                            callback(true, "Demandé un nouveau code", resultWithTest)
+                                                                            callback(false, "Demandé un nouveau code")
                                                                         }
                                                                     })
                                                                 })
@@ -137,13 +138,13 @@ module.exports.register = (newUser, callback) => {
                                                                 if (isGenerate) {
                                                                     sendCode(resultWithCode, (isSend, message, resultSend) => {
                                                                         if (isSend) {
-                                                                            callback(true, "Le code est envoyé à vo tre adresse e-mail", resultWithCode)
+                                                                            callback(true, "Le code est envoyé", resultWithCode)
                                                                         } else {
-                                                                            callback(true, "Verifier votre connexion à internet puis demandé un nouveau code", resultWithCode)
+                                                                            callback(FieldValueInstance, "Verifier votre connexion à internet puis demandé un nouveau code")
                                                                         }
                                                                     })
                                                                 } else {
-                                                                    callback(true, "Demandé un nouveau code", resultWithTest)
+                                                                    callback(false, "Demandé un nouveau code")
                                                                 }
                                                             })
                                                         })
@@ -188,7 +189,8 @@ function testEmail(user, callback) {
                         "$or": [
                             { "deleted": {"$exists": 0 }},
                             { "deleted": false }
-                        ]
+                        ],
+                        flag: true
                     }
                 }
             ]).toArray((err, resultAggr) => {
@@ -214,13 +216,7 @@ function testEmail(user, callback) {
 //Fonction d'envoi du code d'activation
 function sendCode(account, callback) {
 
-    if (NUM_TEL.test(account.email)) {
-        let sms = new smsOrange("Basic NHFCR2lnY3I0OGZidDZQdHU3V0p5ZHRMSWxjU3o0S2c6dlo3MzQ1ZXhzRzVoV1BQYg==", "+243899546448")
-
-        sms.sendSms(account.email, `Votre code de validation pour votre compte BENIRAGI-SERVICES est ` + account.code);
-
-        callback(true, "Le message a été envoyé")
-    } else {
+    if (EMAIL_REGEX.test(account.email)) {
         const output = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -292,6 +288,12 @@ function sendCode(account, callback) {
             transporter.close();
 
         })
+    } else {
+        var SMS = require("./SMS");
+        let sms = new SMS("Basic NHFCR2lnY3I0OGZidDZQdHU3V0p5ZHRMSWxjU3o0S2c6dlo3MzQ1ZXhzRzVoV1BQYg==", "+243899546448")
+
+        sms.sendSms(account.email, `Votre code de validation pour votre compte BENIRAGI-SERVICES est ` + account.code, callback);
+
     }
     
 }
@@ -317,7 +319,7 @@ module.exports.findOneById = (id, callback) => {
                     var type = require("./TypeUsers");
 
                     type.initialize(db);
-                    type.getTypeForUser(resultAggr[0], (isGet, message, resultWithType) => {
+                    type.getTypeForUser(resultAggr[resultAggr.length - 1], (isGet, message, resultWithType) => {
                         if (isGet) {
                             callback(true, message, resultWithType)
                         } else {
@@ -392,7 +394,7 @@ module.exports.login = (obj, callback) => {
 
                     var clearPwd = "Beniragi" + obj.password + "jach";
 
-                    bcrypt.compare(clearPwd, resultAggr[0].password, function (errCompareCrypt, resultCompareCrypt) {
+                    bcrypt.compare(clearPwd, resultAggr[resultAggr.length - 1].password, function (errCompareCrypt, resultCompareCrypt) {
 
 
                         if (errCompareCrypt) {
@@ -400,9 +402,9 @@ module.exports.login = (obj, callback) => {
                         } else {
                             if (resultCompareCrypt) {
 
-                                var id_user = "" + resultAggr[0]._id,
-                                    id_type = resultAggr[0].id_type,
-                                    flag = resultAggr[0].flag,
+                                var id_user = "" + resultAggr[resultAggr.length - 1]._id,
+                                    id_type = resultAggr[resultAggr.length - 1].id_type,
+                                    flag = resultAggr[resultAggr.length - 1].flag,
                                     objetRetour = {
                                         "id_user": id_user,
                                         "id_type": id_type,
@@ -749,12 +751,12 @@ module.exports.getInfos = (objet, callback) => {
                 callback(false, "Une erreur est survenue lors de la récupération des infos du user : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    delete resultAggr[0].created_at;
+                    delete resultAggr[resultAggr.length - 1].created_at;
 
                     var type_users = require("./TypeUsers");
 
                     type_users.initialize(db);
-                    type_users.getTypeForUser(resultAggr[0], (isGet, message, result) => {
+                    type_users.getTypeForUser(resultAggr[resultAggr.length - 1], (isGet, message, result) => {
                         if (isGet) {
                             var media = require("./Media");
 
@@ -882,7 +884,8 @@ module.exports.countUsersForJobs = (objet, callback) => {
                     "$or": [
                         { "deleted": { "$exists": 0 } },
                         { "deleted": false }
-                    ]
+                    ],
+                    flag: true
                 }
             },
             {
@@ -1501,7 +1504,7 @@ module.exports.findOneByEmail = (email, callback) => {
                     callback(false, "Une erreur est survenue lors de la récupération des infos via adresse mail : " + err)
                 } else {
                     if (resultAggr.length > 0) {
-                        callback(true, "Les infos du user", resultAggr[0])
+                        callback(true, "Les infos du user", resultAggr[resultAggr.length - 1])
                     } else {
                         callback(false, "Aucun utilisateur actif")
                     }
