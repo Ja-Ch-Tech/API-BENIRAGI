@@ -1,9 +1,7 @@
 var db = require("./db"),
     bcrypt = require("bcryptjs"),
     nodemailer = require("nodemailer"),
-    jwt = require("jsonwebtoken"),
-    smsOrange = require("smsorange");
-const { FieldValueInstance } = require("twilio/lib/rest/autopilot/v1/assistant/fieldType/fieldValue");
+    jwt = require("jsonwebtoken");
 
 const SIGN_TOKEN_SECRET = "5ef1drc7d64r76c89p73e33t68e2frfc3e",
     EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
